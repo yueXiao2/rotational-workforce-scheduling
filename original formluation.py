@@ -1,5 +1,5 @@
 from gurobipy import *
-
+from fileReader import *
 planningLength = 7
 G = range(planningLength)
 
