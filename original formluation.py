@@ -27,7 +27,7 @@ F2 = [['N','D'],
       ['N','A'],
       ['A','D']]
 
-F3 = [];
+F3 = []
 
 m = Model('RWS')
 
@@ -44,7 +44,8 @@ shiftConverage = {(s,d):m.addConstr(
 maxDayOffs = {d:m.addConstr(quicksum(X[s,dd] for s in S for dd in range(d,min((d+maxD+1),len(D)))) >= 1) 
                                 for d in D}
 
-minDayOffs = {d:m.addConstr(1 - quicksum(X[s,d] for s in S) <= 2 - quicksum((X[s,d-1] + X[s,d+1]) for s in S)) 
+if minD > 1:
+    minDayOffs = {d:m.addConstr(1 - quicksum(X[s,d] for s in S) <= 2 - quicksum((X[s,d-1] + X[s,d+1]) for s in S)) 
                                             for d in D if (d > 0 and d < schedulingLength-1)}
 
 maxWorkDays = {d:m.addConstr(quicksum(X[s,dd] for s in S for dd in range(d,min(d+maxWork+1,len(D)))) <= maxWork) 
@@ -56,14 +57,15 @@ minWorkDays = {d:m.addConstr(Y[d]<= (quicksum(X[s,dd] for s in S for dd in range
 shiftSequence = {(s,d):m.addConstr(X[s,d+minWork-1] <= quicksum( Y[dd] for dd in range(d,d+minWork))) 
                     for s in S for d in D if d < schedulingLength - minWork}
 
-forbidden2 = {(f,d):m.addConstr(X[shiftType.index(F2[f][0]),d] <= 1 - X[shiftType.index(F2[f][1]),d+1]) for f in range(len(F2)) 
+if len(F2) > 0:
+    forbidden2 = {(f,d):m.addConstr(X[shiftType.index(F2[f][0]),d] <= 1 - X[shiftType.index(F2[f][1]),d+1]) for f in range(len(F2)) 
                     for d in D if d < schedulingLength-1}
 
 if len(F3) > 0:
     forbidden3 = {(f,d):m.addConstr(
             X[shiftType.index(F3[f][0]),d] 
-            <= quicksum(X[s,d+1] - X[shiftType.index(F3[f][1]),d+2] 
-            for s in S) ) 
+            <= 1 + quicksum(X[s,d+1]  
+            for s in S) - X[shiftType.index(F3[f][1]),d+2])
     for f in range(len(F3)) for d in D if d < schedulingLength - 2}
 
 
