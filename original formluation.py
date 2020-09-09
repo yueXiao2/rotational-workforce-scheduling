@@ -27,7 +27,7 @@ F2 = [['N','D'],
       ['N','A'],
       ['A','D']]
 
-#F3
+F3 = [];
 
 m = Model('RWS')
 
@@ -59,7 +59,13 @@ shiftSequence = {(s,d):m.addConstr(X[s,d+minWork-1] <= quicksum( Y[dd] for dd in
 forbidden2 = {(f,d):m.addConstr(X[shiftType.index(F2[f][0]),d] <= 1 - X[shiftType.index(F2[f][1]),d+1]) for f in range(len(F2)) 
                     for d in D if d < schedulingLength-1}
 
-#forbidden 3
+if len(F3) > 0:
+    forbidden3 = {(f,d):m.addConstr(
+            X[shiftType.index(F3[f][0]),d] 
+            <= quicksum(X[s,d+1] - X[shiftType.index(F3[f][1]),d+2] 
+            for s in S) ) 
+    for f in range(len(F3)) for d in D if d < schedulingLength - 2}
+
 
 
 OneShiftPerDay = {d:m.addConstr(quicksum(X[s,d] for s in S) <=1) for d in D}
