@@ -1,5 +1,5 @@
 from gurobipy import *
-
+from fileReader import *
 planningLength = 7
 G = range(planningLength)
 
@@ -80,10 +80,3 @@ for d in D:
      for s in S:
          if X[s,d].x > 0.9:
              print(shiftType[s],"on day",d+1,":",X[s,d].x)
-
-            
-    
-
-
-
-
