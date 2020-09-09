@@ -55,7 +55,8 @@ def read_data(input_file):
         if (len(temp) == 2):
             notAllowedShiftSequences2.append(temp)
         else:
-            notAllowedShiftSequences3.append(temp)
+            notAllowedShiftSequences3.append(temp[0])
+            notAllowedShiftSequences3.append(temp[2])
         
     shitToMap = [scheduleLength, numEmployees, numShifts, matrix,
                 morning, afternoon, night,
