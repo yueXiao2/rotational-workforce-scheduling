@@ -15,23 +15,49 @@ def read_data(input_file):
     numEmployees = int(next_valid_line(file))
     numShifts = int(next_valid_line(file))
     
-    matrixline1 = []
-    matrixline2 = []
-    matrixline3 = []
-    for matrix in [matrixline1, matrixline2, matrixline3]:
-        matrixTemp = next_valid_line(file).split()
-        for num in matrixTemp:
-            matrix.append(int(num))
-    matrix = [matrixline1, matrixline2, matrixline3]
-    
-    morning = []
-    afternoon = []
-    night = []
-    for day in [morning, afternoon, night]:
-        dayTemp = next_valid_line(file).split()
-        day.append(dayTemp[0])
-        day.append(int(dayTemp[3]))
-        day.append(int(dayTemp[4]))
+    if numShifts == 3:
+        matrixline1 = []
+        matrixline2 = []
+        matrixline3 = []
+        for matrix in [matrixline1, matrixline2, matrixline3]:
+            matrixTemp = next_valid_line(file).split()
+            for num in matrixTemp:
+                matrix.append(int(num))
+        matrix = [matrixline1, matrixline2, matrixline3]
+        
+        morning = []
+        afternoon = []
+        night = []
+        for day in [morning, afternoon, night]:
+            dayTemp = next_valid_line(file).split()
+            day.append(dayTemp[0])
+            day.append(int(dayTemp[3]))
+            day.append(int(dayTemp[4]))
+    else:
+        matrixline1 = []
+        matrixline2 = []
+        for matrix in [matrixline1, matrixline2]:
+            matrixTemp = next_valid_line(file).split()
+            for num in matrixTemp:
+                matrix.append(int(num))
+        matrix = [matrixline1, matrixline2]
+        morning = []
+        afternoon = []
+        night = []
+        for i in range(2):
+            dayTemp = next_valid_line(file).split()
+            if (dayTemp[0] == 'D'):
+                morning.append(dayTemp[0])
+                morning.append(int(dayTemp[3]))
+                morning.append(int(dayTemp[4]))
+            if (dayTemp[0] == 'A'):
+                afternoon.append(dayTemp[0])
+                afternoon.append(int(dayTemp[3]))
+                afternoon.append(int(dayTemp[4]))
+            if (dayTemp[0] == 'N'):
+                night.append(dayTemp[0])
+                night.append(int(dayTemp[3]))
+                night.append(int(dayTemp[4]))
         
     lengthTemp = next_valid_line(file).split()
     minDaysOffLength = int(lengthTemp[0]) 
@@ -55,8 +81,8 @@ def read_data(input_file):
         if (len(temp) == 2):
             notAllowedShiftSequences2.append(temp)
         else:
-            notAllowedShiftSequences3.append(temp[0])
-            notAllowedShiftSequences3.append(temp[2])
+            notAllowedShiftSequences3.append([temp[0], temp[2]])
+    file.close()
         
     shitToMap = [scheduleLength, numEmployees, numShifts, matrix,
                 morning, afternoon, night,

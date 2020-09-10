@@ -1,13 +1,20 @@
 from gurobipy import *
 from fileReader import *
+import time
+from numpy import mean
 
 testFiles = []
 for num in range(1, 2001):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
+times = {}
+
 for file in testFiles:
-    dataMap = read_data('testcases/Example1.txt')
-    
+    print(file)
+    dataMap = read_data(file)
+    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+        continue
+    start = time.time()
     planningLength = dataMap['scheduleLength']
     G = range(planningLength)
     
@@ -17,9 +24,11 @@ for file in testFiles:
     schedulingLength = planningLength * numEmployee
     D = range(schedulingLength)
     
-    shiftType = ["D","A","N"]
-    S = range(len(shiftType))
-    print(planningLength, numEmployee)
+    shiftType = []
+    for day in ['morning', 'afternoon', 'night']:
+        if dataMap[day] != []:
+            shiftType.append(dataMap[day][0])
+    S = range(dataMap['numShifts'])
     
     workDemand = dataMap['matrix']
     
@@ -27,8 +36,12 @@ for file in testFiles:
     maxD = dataMap['maxDaysOffLength']
     minWork = dataMap['minWorkBlockLength']
     maxWork = dataMap['maxWorkBlockLength']
-    minShift = [dataMap['morning'][1],dataMap['afternoon'][1], dataMap['night'][1]]
-    maxShift = [dataMap['morning'][2],dataMap['afternoon'][2], dataMap['night'][2]]
+    minShift = []
+    maxShift = []
+    for day in ['morning', 'afternoon', 'night']:
+        if dataMap[day] != []:
+            minShift.append(dataMap[day][1])
+            maxShift.append(dataMap[day][2])
     
     F2 = dataMap['notAllowedShiftSequences2']
     
@@ -41,7 +54,7 @@ for file in testFiles:
     Y = {d:m.addVar(vtype = GRB.BINARY) for d in D}
     Z = {(s,d):m.addVar(vtype = GRB.BINARY) for s in S for d in D}
     
-    
+
     shiftConverage = {(s,d):m.addConstr(
             quicksum( X[s,dd] for dd in D if (dd % planningLength) == d) == workDemand[s][d]) 
             for s in S for d in G}
@@ -49,8 +62,9 @@ for file in testFiles:
     maxDayOffs = {d:m.addConstr(quicksum(X[s,dd] for s in S for dd in range(d,min((d+maxD+1),len(D)))) >= 1) 
                                     for d in D}
     
-    minDayOffs = {d:m.addConstr(1 - quicksum(X[s,d] for s in S) <= 2 - quicksum((X[s,d-1] + X[s,d+1]) for s in S)) 
-                                                for d in D if (d > 0 and d < schedulingLength-1)}
+    if (minD > 1):
+        minDayOffs = {d:m.addConstr(1 - quicksum(X[s,d] for s in S) <= 2 - quicksum((X[s,d-1] + X[s,d+1]) for s in S)) 
+                                                    for d in D if (d > 0 and d < schedulingLength-1)}
     
     maxWorkDays = {d:m.addConstr(quicksum(X[s,dd] for s in S for dd in range(d,min(d+maxWork+1,len(D)))) <= maxWork) 
                                                 for d in D}
@@ -70,7 +84,7 @@ for file in testFiles:
                 X[shiftType.index(F3[f][0]),d] 
                 <= 1 + quicksum(X[s,d+1]  
                 for s in S) - X[shiftType.index(F3[f][1]),d+2])
-        for f in range(len(F3)) for d in D if d < schedulingLength - 2}
+                for f in range(len(F3)) for d in D if d < schedulingLength - 2}
     
     
     OneShiftPerDay = {d:m.addConstr(quicksum(X[s,d] for s in S) <=1) for d in D}
@@ -87,7 +101,11 @@ for file in testFiles:
     
     m.optimize()
     
-    for d in D:
-         for s in S:
-             if X[s,d].x > 0.9:
-                 print(shiftType[s],"on day",d+1,":",X[s,d].x)
+    end = time.time()
+    timeElpased = end - start
+    times[file] = timeElpased
+    
+    #for d in D:
+     #    for s in S:
+      #       if X[s,d].x > 0.9:
+       #          print(shiftType[s],"on day",d+1,":",X[s,d].x)
