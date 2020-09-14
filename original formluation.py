@@ -12,8 +12,14 @@ times = {}
 for file in testFiles:
     print(file)
     dataMap = read_data(file)
+    
+    ################################################################
     if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
         continue
+    
+    ###############################################################
+    
+    
     start = time.time()
     planningLength = dataMap['scheduleLength']
     G = range(planningLength)
