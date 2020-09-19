@@ -4,7 +4,7 @@ import time
 from numpy import mean
 
 testFiles = []
-for num in range(1, 2001):
+for num in range(1, 2):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
@@ -13,11 +13,13 @@ for file in testFiles:
     print(file)
     dataMap = read_data(file)
     
-    ################################################################
-    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
-        continue
-    
-    ###############################################################
+# =============================================================================
+#     ################################################################
+#     if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+#         continue
+#     
+#     ###############################################################
+# =============================================================================
     
     
     start = time.time()
@@ -111,7 +113,7 @@ for file in testFiles:
     timeElpased = end - start
     times[file] = timeElpased
     
-    #for d in D:
-     #    for s in S:
-      #       if X[s,d].x > 0.9:
-       #          print(shiftType[s],"on day",d+1,":",X[s,d].x)
+    for d in D:
+         for s in S:
+             if X[s,d].x > 0.9:
+                 print(shiftType[s],"on day",d+1,":",X[s,d].x)
