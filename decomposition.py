@@ -2,7 +2,7 @@ from gurobipy import *
 from fileReader import *
 
 file = "testcases/Example"
-num = 1
+num = 100
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -50,35 +50,55 @@ F3 = dataMap['notAllowedShiftSequences3']
 B = []
 
 DW = range(maxWork)
+
+# current length of shift block we are currently looking for 
 L = minWork
 
+
+# emuerating each element b in B (the set of feasible blocks)
 while L <= maxWork:
     m = Model('computing feasible shift blocks')
     m.setParam('OutputFlag', 0)
     
+    # 1 if the shift block contains shift s in day d
     X = {(s,d):m.addVar(vtype = GRB.BINARY) for s in S for d in DW}
+    
+    # if the shift s is used in this feasible block
     Y= {(s):m.addVar(vtype = GRB.BINARY) for s in S}
     
+    # your block can only have shift per day
     OneShiftPerDay = {(d):m.addConstr(quicksum(X[s,d] for s in S) <= 1) for d in DW}
+    
+    # The numebr of shifts in the block must be more than the minimum length
     minLengthWork = m.addConstr( quicksum(X[s,d] for s in S for d in DW)>= minWork)
     
+    # enforce forbidden sequence constraint 
     if len(F2) > 0:
         ForbiddenSequence2 = {(f): m.addConstr(X[shiftType.index(F2[f][0]),d] + X[shiftType.index(F2[f][1]),d+1] <= 1) for d in DW if d < maxWork-1 
         for f in range(len(F2))}
         
+    # the length of the block must of length L    
     Length = m.addConstr(quicksum(X[s,d] for s in S for d in DW) == L)
     
+    # shift blocks must be continous witout day off in between
+    #upperbound on shfit block (e.g. the days that below the length L must have one shift)
     Continuous = {d:m.addConstr(quicksum(X[s,d] for s in S) >= (L - d)/maxWork ) for d in DW}
+    
+    # upperbound on shfit block (e.g. the days that exceed the length L must have no shift)
     Continuous2 = {d:m.addConstr(quicksum(X[s,d] for s in S) <= 1 + (L -d)/maxWork) for d in DW}
     
+    # set Y to be 1 for s if s is used in any particular day d
     shiftUsed = {s:m.addConstr(quicksum(X[s,d] for d in DW)/maxShift[s] <= Y[s]) for s in S}
     
+    # enforce minimum length of shift s if it is used
     minLengthShift = {s:m.addConstr(quicksum(X[s,d] for d in DW) >= minShift[s] * Y[s]) for s in S}
     
     maxLengthShift = {s:m.addConstr(quicksum(X[s,d] for d in DW) <= maxShift[s]) for s in S}
     
     #Finding multiple solutions
     if len(B) > 0:
+        
+        # no-good cut/ rubbish cut: cuts off the discovered solutions in the set B
         newSolution = {b:m.addConstr(quicksum(X[s,d] for s in S for d in range(len(b)) if s != b[d]) + quicksum(1 - X[b[d],d] for d in range(len(b))) >= 1) for b in B if len(b) == L}
     
     m.optimize()
@@ -91,9 +111,6 @@ while L <= maxWork:
                     b.append(s)
         
         b = tuple(b)
-
-    
-
         B.append(b)
 
     else:
