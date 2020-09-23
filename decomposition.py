@@ -2,7 +2,7 @@ from gurobipy import *
 from fileReader import *
 
 file = "testcases/Example"
-num = 100
+num = 1
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -154,10 +154,33 @@ OnShiftDemand = {(s,d):m.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == work
 m.optimize()
 print("covers found")
 
+#Set of nodes
+N = []
+
 for d in G:
     for b in range(len(B)):
         if X[b,d].x > 0.9:
+            N.append((b,d))
             print('block ' + str(b) + ' starts ' + str(X[b,d].x) + ' times from day ' + str(d))
 
-
+def additionEmp (n1, n2):
+    additionCount = 0
+    shiftBlock1 = B[n1[0]]
+    shiftBlock2 = B[n2[0]]
+    
+    startDay1 = n1[1]
+    startDay2 = n2[1]
+    
+    blockLeng1 = len(shiftBlock1)
+    blockLeng2 = len(shiftBlock2)
+    
+    if startDay1 + blockLeng1 > 7:
+        additionCount += 1
+    if startDay2 + blockLeng2 > 7:
+        additionCount += 1
+    
+    return additionCount
+        
+    
+    
 
