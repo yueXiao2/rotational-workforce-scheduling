@@ -165,22 +165,35 @@ for d in G:
 
 def additionEmp (n1, n2):
     additionCount = 0
+    
     shiftBlock1 = B[n1[0]]
     shiftBlock2 = B[n2[0]]
     
+    #first day of the block
     startDay1 = n1[1]
     startDay2 = n2[1]
     
+    #length of the shift block
     blockLeng1 = len(shiftBlock1)
     blockLeng2 = len(shiftBlock2)
     
-    if startDay1 + blockLeng1 > 7:
+    #last day of the block
+    blockEnd1 = startDay1 + blockLeng1 - 1
+    blockEnd2 = startDay2 + blockLeng2 - 1
+    
+    
+    if blockEnd1 > 6:
         additionCount += 1
-    if startDay2 + blockLeng2 > 7:
+    
+    if blockEnd1 >= startDay2:
         additionCount += 1
+    
+    if blockEnd2 > 6:
+        additionCount += 1
+    
     
     return additionCount
         
     
-    
+
 
