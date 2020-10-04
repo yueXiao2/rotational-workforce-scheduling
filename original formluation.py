@@ -4,7 +4,7 @@ import time
 from numpy import mean
 
 testFiles = []
-for num in range(100, 101):
+for num in range(1, 2):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
@@ -116,4 +116,4 @@ for file in testFiles:
     for d in D:
          for s in S:
              if X[s,d].x > 0.9:
-                 print(shiftType[s],"on day",d+1,":",X[s,d].x)
+                 print(shiftType[s],"on day",d,":",X[s,d].x)
