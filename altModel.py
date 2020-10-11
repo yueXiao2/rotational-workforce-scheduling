@@ -240,21 +240,35 @@ X = {(b,d) : m.addVar(vtype=GRB.BINARY) for b in B for d in G}
 Y = {((b1,d1), (b2,d2)) : m.addVar(vtype=GRB.BINARY) for b1 in B for b2 in B for d1 in G for d2 in G}
 
 #Constraints
-#Maximum Days off constraint
-MaxDaysOff = {((b1,d1), (b2,d2)) : m.addConstr(Y[(b1,d1), (b2,d2)]*((d1 + len(b1) + maxD) % planningLength) <= d2) for b1 in B for b2 in B for d1 in G for d2 in G}
 
-#Minimum days off constraint
+for b1 in B:
+    for b2 in B:
+        for d1 in G:
+            for d2 in G:
+                m.addConstr(X[b1,d1] + X[b2,d2] >= 2 * Y[(b1,d1),(b2,d2)])
+
+
+#Minimum/maximum days off constraint
 for b1 in B:
     for b2 in B:
         for d1 in G:
             for d2 in G:
                 if (d1 + len(b1)) % planningLength <= d2:
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*(abs(d1 + len(b1)) % planningLength - d2) >= minD)
+                    m.addConstr(( d2 - (d1 + len(b1) % planningLength)) >= minD * Y[(b1,d1), (b2,d2)])
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - (d1 + len(b1) % planningLength)) <= maxD)
                 else:
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*(abs((d1 + len(b1) - (d2 + 7))) % planningLength) >= minD)
+                    
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - (d1 + len(b1) % planningLength) + 7) <= maxD)
+                    m.addConstr((d2 - (d1 + len(b1) % planningLength) + 7) >= Y[(b1,d1), (b2,d2)]* minD)
 
+
+#sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
+OnShiftDemand = {(s,d):m.addConstr( quicksum(X[B[b],g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
+
+
+#Questionable constraint - one employee can take more than one block
 #Enough shifts are connected to cover the whole scheduling length
-CoversEnoughWeeks = m.addConstr(quicksum(Y[(b1,d1), (b2,d2)] for b1 in B for b2 in B for d1 in G for d2 in G) == numEmployee - 1)
+#CoversEnoughWeeks = m.addConstr(quicksum(Y[(b1,d1), (b2,d2)] for b1 in B for b2 in B for d1 in G for d2 in G) == numEmployee - 1)
 
 m.optimize()
 
