@@ -2,7 +2,7 @@ from gurobipy import *
 from fileReader import *
 
 file = "testcases/Example"
-num = 1
+num = 15
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -231,11 +231,11 @@ def getLength (b):
     
 BW = range(len(B))
 m = Model("master")
-m.setParam('OutputFlag',0)
+m.setParam('OutputFlag',1)
+m.setParam('Threads',1)
 
 #number of times that shift block b starts from day d
 X = {(b,d):m.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
-Dummy = {(b,d):m.addVar() for d in G for b in BW}
 
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
@@ -386,6 +386,7 @@ def Callback (model, where):
                         infeasible.append((b,d))
                         valueX[(b,d)] = XV[b,d]
 
+
             model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(valueX[b,d] - X[b,d] for (b,d) in infeasible) -1 >= 0)
 # =============================================================================
 
@@ -394,7 +395,7 @@ m.setParam('LazyConstraints', 1)
 
 #while True:
 N = []
-m.optimize(Callback)
+m.optimize()
 for d in G:
     for b in BW:
         if X[b,d].x > 0:
@@ -443,6 +444,7 @@ if p.status == GRB.INFEASIBLE:
     # Vice Versa, check: number of t total work offs <= number of shift blocks x maximum day oof length
     
     
-    # when detect such defective solution, we either make the cut such that
+    # 2. symmetry breaking. If one master problem is infeasible, then its rotations/ shifts that preserves the same order
+    #is also infeasible. Hence, CUT
     #
     #
