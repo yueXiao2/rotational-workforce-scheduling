@@ -239,7 +239,6 @@ X = {(b,d) : m.addVar(vtype=GRB.BINARY) for b in B for d in G}
 #Node (b1,d1) is followed by node (b2,d2)
 Y = {((b1,d1), (b2,d2)) : m.addVar(vtype=GRB.BINARY) for b1 in B for b2 in B for d1 in G for d2 in G}
 
-
 #Constraints
 #Maximum Days off constraint
 MaxDaysOff = {((b1,d1), (b2,d2)) : m.addConstr(Y[(b1,d1), (b2,d2)]*((d1 + len(b1) + maxD) % planningLength) <= d2) for b1 in B for b2 in B for d1 in G for d2 in G}
@@ -252,7 +251,7 @@ for b1 in B:
                 if (d1 + len(b1)) % planningLength <= d2:
                     m.addConstr(Y[(b1,d1), (b2,d2)]*(abs(d1 + len(b1)) % planningLength - d2) >= minD)
                 else:
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*abs((d1 + len(b1) - (d2 + 7)) % planningLength) >= minD)
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*(abs((d1 + len(b1) - (d2 + 7))) % planningLength) >= minD)
 
 #Enough shifts are connected to cover the whole scheduling length
 CoversEnoughWeeks = m.addConstr(quicksum(Y[(b1,d1), (b2,d2)] for b1 in B for b2 in B for d1 in G for d2 in G) == numEmployee - 1)
