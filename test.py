@@ -235,7 +235,8 @@ m.setParam('OutputFlag',0)
 m.setParam('Threads',1)
 
 #number of times that shift block b starts from day d
-X = {(b,d):m.addVar(vtype = GRB.BINARY) for d in G for b in BW}
+X = {(b,d):m.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
+
 
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
@@ -338,6 +339,9 @@ def Callback (model, where):
                     print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
         
         #Idea of improvement : better way to determine the factors of a hamiltonian circle
+        print("--------------------")    
+        # solving for the subproblem
+        
         if XV not in SolutionSet:
             SolutionSet.append(XV)
             print("solution appended. current length: " + str(len(SolutionSet)))
@@ -383,8 +387,7 @@ def Callback (model, where):
                         infeasible.append((b,d))
                         valueX[(b,d)] = XV[b,d]
 
-
-            model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(1 - X[b,d] for (b,d) in infeasible) -1 >= 0)
+            model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(valueX[b,d] - X[b,d] for (b,d) in infeasible) -1 >= 0)
 # =============================================================================
 
 # =============================================================================
@@ -393,9 +396,6 @@ m.setParam('LazyConstraints', 1)
 #while True:
 N = []
 m.optimize(Callback)
-
-if m.status == GRB.INFEASIBLE:
-    print("no solution")
 for d in G:
     for b in BW:
         if X[b,d].x > 0:
@@ -414,7 +414,7 @@ p = Model("subproblem")
 C = {(i,j):p.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
 
 # the total additional employees needed will equal to the total number of employees
-EmployeeNum2 = p.addConstr(quicksum(additionEmp(N[i],N[j])*C[i,j] for i in NN for j in NN) == numEmployee)
+EmployeeNum2 = p.addConstr(quicksum(additionEmp(N[i],N[j])*C[i,j] for i in NN for j in NN if i != j) == numEmployee)
 
 #Conservation of flow
 OneEdgeOut2 = {i:p.addConstr(quicksum(C[i,j] for j in NN if j != i) == 1) for i in NN}
@@ -429,9 +429,13 @@ if p.status == GRB.INFEASIBLE:
     #break
 # =============================================================================
 # =============================================================================
-
-
-
+# for i in NN:
+#     for j in NN:
+#         if C[i,j].x > 0.9:
+#             print("node " + str(i) + " to node " + str(j))
+# =============================================================================
+# =============================================================================
+# =============================================================================
 
 #idea for better cuts:
     #1. given that we know the number of shift blocks WILL equal to the number
@@ -440,7 +444,4 @@ if p.status == GRB.INFEASIBLE:
     # Vice Versa, check: number of t total work offs <= number of shift blocks x maximum day oof length
     
     
-    # 2. symmetry breaking. If one master problem is infeasible, then its rotations/ shifts that preserves the same order
-    #is also infeasible. Hence, CUT
-    #
-    #
+    # when detect such defective solution, we either make the cut such that

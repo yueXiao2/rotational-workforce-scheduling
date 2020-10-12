@@ -254,12 +254,12 @@ for b1 in B:
         for d1 in G:
             for d2 in G:
                 if (d1 + len(b1)) % planningLength <= d2:
-                    m.addConstr(( d2 - (d1 + len(b1) % planningLength)) >= minD * Y[(b1,d1), (b2,d2)])
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - (d1 + len(b1) % planningLength)) <= maxD)
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - ((d1 + len(b1)) % planningLength)) >= minD)
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - ((d1 + len(b1)) % planningLength)) <= maxD)
                 else:
                     
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - (d1 + len(b1) % planningLength) + 7) <= maxD)
-                    m.addConstr((d2 - (d1 + len(b1) % planningLength) + 7) >= Y[(b1,d1), (b2,d2)]* minD)
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - ((d1 + len(b1)) % planningLength) + 7) <= maxD)
+                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - ((d1 + len(b1)) % planningLength) + 7) >= minD)
 
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
@@ -273,6 +273,10 @@ OnShiftDemand = {(s,d):m.addConstr( quicksum(X[B[b],g] for (b,g) in C(s,d)) == w
 m.optimize()
 
 if m.status != GRB.INFEASIBLE:
+    for b in B:
+        for d in G:
+            if X[b,d].x > 0.9:
+                print(b,d)
     for b1 in B:
         for b2 in B:
             for d1 in G:
