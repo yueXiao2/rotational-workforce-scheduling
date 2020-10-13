@@ -148,8 +148,8 @@ def C(s,d):
 def additionEmp (n1, n2):
     additionCount = 0
     
-    shiftBlock1 = B[n1[0]]
-    shiftBlock2 = B[n2[0]]
+    shiftBlock1 = n1[0]
+    shiftBlock2 = n2[0]
     
     #first day of the block
     startDay1 = n1[1]
@@ -184,8 +184,8 @@ def cantUseNodes(N):
     cantUse = []
     for n1 in N:
         for n2 in N:
-            shiftBlock1 = B[n1[0]]
-            shiftBlock2 = B[n2[0]]
+            shiftBlock1 = n1[0]
+            shiftBlock2 = n2[0]
     
             #first day of the block
             startDay1 = n1[1]
@@ -196,8 +196,8 @@ def cantUseNodes(N):
             blockLeng2 = len(shiftBlock2)
     
             #last day of the block
-            blockEnd1 = startDay1 + blockLeng1 - 1
-            blockEnd2 = startDay2 + blockLeng2 - 1
+            blockEnd1 = startDay1 + blockLeng1 - 1 % planningLength 
+            blockEnd2 = startDay2 + blockLeng2 - 1 % planningLength 
             
             index1 = N.index(n1)
             index2 = N.index(n2)
@@ -246,6 +246,15 @@ for b1 in B:
         for d1 in G:
             for d2 in G:
                 m.addConstr(X[b1,d1] + X[b2,d2] >= 2 * Y[(b1,d1),(b2,d2)])
+                
+Employee = m.addConstr(quicksum( additionEmp((b1,d1),(b2,d2))* Y[(b1,d1),(b2,d2)] for b1 in B for d1 in G for b2 in B for d2 in G) == numEmployee)
+
+#Conservation of flow
+
+#TERRIBLE LP RELAXATION
+# problematic constraints, removing this makes the model feasible
+OneEdgeOut = {(b1,d1):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b2 in B for d2 in G ) == 1) for b1 in B for d1 in G}
+OneEdgeIn = {(b2,d2):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b1 in B for d1 in G ) == 1) for b2 in B for d2 in G}
 
 
 #Minimum/maximum days off constraint
@@ -253,13 +262,14 @@ for b1 in B:
     for b2 in B:
         for d1 in G:
             for d2 in G:
-                if (d1 + len(b1)) % planningLength <= d2:
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - ((d1 + len(b1)) % planningLength)) >= minD)
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - ((d1 + len(b1)) % planningLength)) <= maxD)
-                else:
-                    
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - ((d1 + len(b1)) % planningLength) + 7) <= maxD)
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - ((d1 + len(b1)) % planningLength) + 7) >= minD)
+                blockEnd = ((d1 + len(b1)) - 1)% planningLength
+                offwork = d2 - blockEnd -1
+                
+                if blockEnd >= d2:
+                    offwork += 7
+                
+                m.addConstr(Y[(b1,d1), (b2,d2)]*offwork <= maxD)
+                m.addConstr(offwork >= minD *Y[(b1,d1), (b2,d2)])
 
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
@@ -271,7 +281,7 @@ OnShiftDemand = {(s,d):m.addConstr( quicksum(X[B[b],g] for (b,g) in C(s,d)) == w
 #CoversEnoughWeeks = m.addConstr(quicksum(Y[(b1,d1), (b2,d2)] for b1 in B for b2 in B for d1 in G for d2 in G) == numEmployee - 1)
 
 m.optimize()
-
+print(minD)
 if m.status != GRB.INFEASIBLE:
     for b in B:
         for d in G:

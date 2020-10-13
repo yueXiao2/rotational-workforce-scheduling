@@ -195,8 +195,8 @@ def cantUseNodes(N):
             blockLeng2 = len(shiftBlock2)
     
             #last day of the block
-            blockEnd1 = startDay1 + blockLeng1 - 1
-            blockEnd2 = startDay2 + blockLeng2 - 1
+            blockEnd1 = (startDay1 + blockLeng1 - 1) % planningLength
+            blockEnd2 = (startDay2 + blockLeng2 - 1) % planningLength
             
             index1 = N.index(n1)
             index2 = N.index(n2)
@@ -228,8 +228,33 @@ def getLength (b):
     block = B[b]
     
     return len(block)
+
+def maximumAllowance(block,start):
+    k = Model("maximum allowance of block b starting on d") 
+    k.setParam('OutputFlag',0)
+    X = {}
+    #number of times that shift block b starts from day d
+    X = {(b,d):k.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
+
+    Demand = {}
+    Demand = {(s,d):k.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
     
+    k.setObjective(X[block, start], GRB.MAXIMIZE)
+    k.optimize()
+   
+    
+    print("maximum is",X[block,start].x)
+    
+    return X[block,start].x
+
+
+  
 BW = range(len(B))
+
+
+
+
+
 m = Model("master")
 m.setParam('OutputFlag',0)
 m.setParam('Threads',1)
@@ -237,6 +262,8 @@ m.setParam('Threads',1)
 #number of times that shift block b starts from day d
 X = {(b,d):m.addVar(vtype = GRB.BINARY) for d in G for b in BW}
 
+
+#Terrible LP relaxation. Idea: construct a new variable similar to prac 2012 exam
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
 OnShiftDemand = {(s,d):m.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
@@ -252,6 +279,8 @@ WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) 
 #total day offs  = schedule length - total shift days
 WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
 
+#The maximum times that a block b can start on day d
+MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] <= maximumAllowance(b,d)) for b in BW for d in G}
 
 
 
@@ -335,7 +364,7 @@ def Callback (model, where):
             for b in BW:
                 if XV[b,d] > 0.9:
                     N.append((b,d))
-                    print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
+                    #print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
         
         #Idea of improvement : better way to determine the factors of a hamiltonian circle
         if XV not in SolutionSet:
