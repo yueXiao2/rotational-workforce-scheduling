@@ -1,6 +1,6 @@
 from gurobipy import *
 from fileReader import *
-
+import time
 file = "testcases/Example"
 num = 1
 
@@ -54,6 +54,7 @@ DW = range(maxWork)
 # current length of shift block we are currently looking for 
 L = minWork
 
+start = time.time()
 
 # emuerating each element b in B (the set of feasible blocks)
 while L <= maxWork:
@@ -127,7 +128,7 @@ def Coverage(b,d):
     for i in b:
         tupleList = tuple([i,currentDay])
         coverageList.append(tupleList)
-        currentDay = (currentDay + 1)%planningLength
+        currentDay = (currentDay + 1) % planningLength
     
     return coverageList
 
@@ -169,7 +170,7 @@ def additionEmp (n1, n2):
  
     #if the second schedule is to be started before or during the first block
     #we need an additional employee to take the second block
-    if blockEnd1 >= startDay2:
+    if blockEnd1 % planningLength >= startDay2:
         additionCount += 1
 
     #if the second block goes beyond the end of the schedule, 
@@ -232,26 +233,33 @@ def getLength (b):
 def maximumAllowance(block,start):
     k = Model("maximum allowance of block b starting on d") 
     k.setParam('OutputFlag',0)
+    #print(block,start)
     X = {}
     #number of times that shift block b starts from day d
     X = {(b,d):k.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
 
-    Demand = {}
     Demand = {(s,d):k.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
     
     k.setObjective(X[block, start], GRB.MAXIMIZE)
     k.optimize()
-   
     
-    print("maximum is",X[block,start].x)
+    if k.status == GRB.INF_OR_UNBD:
+        k.setParam("DualReductions",0)
+        k.optimize()
     
-    return X[block,start].x
+    maximumCount = 0
+    if k.status == GRB.OPTIMAL:
+        maximumCount = X[block,start].x
+    return maximumCount
 
 
   
 BW = range(len(B))
 
 
+for b in BW:
+    for d in G:
+        print(maximumAllowance(b,d))
 
 
 
@@ -260,7 +268,7 @@ m.setParam('OutputFlag',0)
 m.setParam('Threads',1)
 
 #number of times that shift block b starts from day d
-X = {(b,d):m.addVar(vtype = GRB.BINARY) for d in G for b in BW}
+X = {(b,d):m.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
 
 
 #Terrible LP relaxation. Idea: construct a new variable similar to prac 2012 exam
@@ -282,93 +290,25 @@ WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) 
 #The maximum times that a block b can start on day d
 MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] <= maximumAllowance(b,d)) for b in BW for d in G}
 
-
-
-# =============================================================================
-# i = 1
-# while i <= 400:
-#     m.optimize()
-#     print("iteration" + str(i))
-#     print("covers found")
-#     
-#     if m.status == GRB.INFEASIBLE:
-#         print("infeasible master")
-#         break
-#     
-#     #Set of nodes
-#     N = []
-#     
-#     for d in G:
-#         for b in BW:
-#             if X[b,d].x > 0.9:
-#                 N.append((b,d))
-#                 print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
-#     
-#     #Idea of improvement : better way to determine the factors of a hamiltonian circle
-#         
-#     # solving for the subproblem
-#     
-#     NN = range(len(N))
-#     K = cantUseNodes(N)
-#     
-#     s = Model("subproblem")
-#     
-#     #1 if node j comes after node i
-#     V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
-#     
-#     # the total additional employees needed will equal to the total number of employees
-#     EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for i in NN for j in NN) == numEmployee)
-#     
-#     #Conservation of flow
-#     OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN if j != i) == 1) for i in NN}
-#     OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN if j != i) == 1) for j in NN}
-#     
-#     CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
-#     s.setParam('OutputFlag',0)
-#     s.optimize()
-#     
-# 
-#     if s.status == GRB.INFEASIBLE:
-#         
-#         valueX = {}
-#         bigV = []
-#         infeasible = []
-#         for d in G:
-#             for b in BW:
-#                 if X[b,d].x > 0.9:
-#                     infeasible.append((b,d))
-#                     valueX[(b,d)] = X[b,d].x
-#         bigI.append(infeasible)
-#         bigV.append(valueX)
-#         
-#         
-#         Dummy = {(b,d,p):m.addVar() for p in range(len(bigV)) for (b,d) in bigV[p] }
-#     
-#         
-#         dummyConstr = {p:m.addConstr(Dummy[b,d,p] >= bigV[p][b,d] - X[b,d]) for p in range(len(bigV)) for (b,d) in bigV[p] }
-#         dummyConstr2 = {p:m.addConstr(Dummy[b,d,p] >=  - bigV[p][b,d] + X[b,d]) for p in range(len(bigV)) for (b,d) in bigV[p] }
-#         
-#         newSolution1 = {p:m.addConstr(quicksum(X[b,d] for d in G for b in BW if (b,d) not in bigI[p])  - 1 >= 0) for p in range(len(bigI))}
-#     
-#     i+=1
-# =============================================================================
-
 SolutionSet = []
 
 def Callback (model, where):
     if where == GRB.Callback.MIPSOL:
+        print("begining the callback!")
 
         N = []
         XV = {k: v for (k,v) in zip(X.keys(), model.cbGetSolution(list(X.values())))}
         for d in G:
             for b in BW:
                 if XV[b,d] > 0.9:
-                    N.append((b,d))
+                    num = round(XV[b,d])
+                    for number in range(num):
+                        N.append((b,d))
                     #print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
         
         #Idea of improvement : better way to determine the factors of a hamiltonian circle
-        if XV not in SolutionSet:
-            SolutionSet.append(XV)
+        if set(N) not in SolutionSet:
+            SolutionSet.append(set(N))
             print("solution appended. current length: " + str(len(SolutionSet)))
         else:
             print("ohhhhh cyclic!")
@@ -387,18 +327,23 @@ def Callback (model, where):
         EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for i in NN for j in NN) == numEmployee)
         
         #Conservation of flow
-        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN if j != i) == 1) for i in NN}
-        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN if j != i) == 1) for j in NN}
+        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN ) == 1) for i in NN}
+        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN ) == 1) for j in NN}
+        
+        # edge connecting to self is not allowed
+        NoSelfEdge = {i:s.addConstr(V[i,i] == 0) for i in NN}
         
         CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
         s.setParam('OutputFlag',0)
         s.optimize()
         
-        if s.status != GRB.INFEASIBLE:
-            for i in NN:
-                for j in NN:
-                    if V[i,j].x > 0.9:
-                        print("node "+ str(i) + " to node " + str(j))
+# =============================================================================
+#         if s.status != GRB.INFEASIBLE:
+#             for i in NN:
+#                 for j in NN:
+#                     if V[i,j].x > 0.9:
+#                         print("node "+ str(i) + " to node " + str(j))
+# =============================================================================
         
         
     
@@ -413,63 +358,79 @@ def Callback (model, where):
                         valueX[(b,d)] = XV[b,d]
 
 
-            model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(1 - X[b,d] for (b,d) in infeasible) -1 >= 0)
+            model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(valueX[b,d] - X[b,d] for (b,d) in infeasible) -1 >= 0)
 # =============================================================================
 
 # =============================================================================
 m.setParam('LazyConstraints', 1)
 
+
+
 #while True:
 N = []
 m.optimize(Callback)
-
+end = time.time()
+timeElapsed = end - start
+print("time taken",timeElapsed)
 if m.status == GRB.INFEASIBLE:
     print("no solution")
-for d in G:
-    for b in BW:
-        if X[b,d].x > 0:
-            N.append((b,d))
-            print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
-print("----------------------------------------")
-
-# =============================================================================
-
-NN = range(len(N))
-K = cantUseNodes(N)
-
-p = Model("subproblem")
-
-#1 if node j comes after node i
-C = {(i,j):p.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
-
-# the total additional employees needed will equal to the total number of employees
-EmployeeNum2 = p.addConstr(quicksum(additionEmp(N[i],N[j])*C[i,j] for i in NN for j in NN) == numEmployee)
-
-#Conservation of flow
-OneEdgeOut2 = {i:p.addConstr(quicksum(C[i,j] for j in NN if j != i) == 1) for i in NN}
-OneEdgeIn2 = {j:p.addConstr(quicksum(C[i,j] for i in NN if j != i) == 1) for j in NN}
-
-CantUseNodesInK2 = {(i,j):p.addConstr(C[i,j] == 0) for (i,j) in K}
-p.setParam('OutputFlag',0)
-p.optimize()
-
-if p.status == GRB.INFEASIBLE:
-    print("fuck")
-    #break
-# =============================================================================
-# =============================================================================
-
-
-
-
-#idea for better cuts:
-    #1. given that we know the number of shift blocks WILL equal to the number
-    # of day off blocks. We can do a warm start cut that ensures:
-    # the number of total work offs days must be >= number of shift blocks x minimum day off length
-    # Vice Versa, check: number of t total work offs <= number of shift blocks x maximum day oof length
+else:
+    for d in G:
+        for b in BW:
+            if X[b,d].x > 0:
+                num = round(X[b,d].x)
+                for number in range(num):
+                    N.append((b,d))
+                print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
+    print("----------------------------------------")
+    
+    # =============================================================================
+    
+    NN = range(len(N))
+    K = cantUseNodes(N)
+    
+    p = Model("subproblem")
+    
+    #1 if node j comes after node i
+    C = {(i,j):p.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
+    
+    # the total additional employees needed will equal to the total number of employees
+    EmployeeNum2 = p.addConstr(quicksum(additionEmp(N[i],N[j])*C[i,j] for i in NN for j in NN) == numEmployee)
+    
+    #Conservation of flow
+    OneEdgeOut2 = {i:p.addConstr(quicksum(C[i,j] for j in NN ) == 1) for i in NN}
+    OneEdgeIn2 = {j:p.addConstr(quicksum(C[i,j] for i in NN  ) == 1) for j in NN}
+    
+    # edge connecting to self is not allowed
+    NoSelfEdge = {i:p.addConstr(C[i,i] == 0) for i in NN}
+    
+    CantUseNodesInK2 = {(i,j):p.addConstr(C[i,j] == 0) for (i,j) in K}
+    p.setParam('OutputFlag',0)
+    p.optimize()
+    
+    if p.status == GRB.INFEASIBLE:
+        print("fuck")
+        #break
+    else:
+        if p.status != GRB.INFEASIBLE:
+            for i in NN:
+                for j in NN:
+                    if C[i,j].x > 0.9:
+                        print("node "+ str(i) + " to node " + str(j))
+    # =============================================================================
+    # =============================================================================
     
     
-    # 2. symmetry breaking. If one master problem is infeasible, then its rotations/ shifts that preserves the same order
-    #is also infeasible. Hence, CUT
-    #
-    #
+    
+    
+    #idea for better cuts:
+        #1. given that we know the number of shift blocks WILL equal to the number
+        # of day off blocks. We can do a warm start cut that ensures:
+        # the number of total work offs days must be >= number of shift blocks x minimum day off length
+        # Vice Versa, check: number of t total work offs <= number of shift blocks x maximum day oof length
+        
+        
+        # 2. symmetry breaking. If one master problem is infeasible, then its rotations/ shifts that preserves the same order
+        #is also infeasible. Hence, CUT
+        #
+        #

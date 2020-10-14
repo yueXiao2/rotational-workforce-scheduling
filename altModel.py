@@ -2,7 +2,7 @@ from gurobipy import *
 from fileReader import *
 
 file = "testcases/Example"
-num = 1
+num = 16
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -170,7 +170,7 @@ def additionEmp (n1, n2):
  
     #if the second schedule is to be started before or during the first block
     #we need an additional employee to take the second block
-    if blockEnd1 >= startDay2:
+    if blockEnd1 % planningLength >= startDay2:
         additionCount += 1
 
     #if the second block goes beyond the end of the schedule, 
@@ -253,8 +253,11 @@ Employee = m.addConstr(quicksum( additionEmp((b1,d1),(b2,d2))* Y[(b1,d1),(b2,d2)
 
 #TERRIBLE LP RELAXATION
 # problematic constraints, removing this makes the model feasible
-OneEdgeOut = {(b1,d1):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b2 in B for d2 in G ) == 1) for b1 in B for d1 in G}
-OneEdgeIn = {(b2,d2):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b1 in B for d1 in G ) == 1) for b2 in B for d2 in G}
+OneEdgeOut = {(b1,d1):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b2 in B for d2 in G ) <= 1) for b1 in B for d1 in G}
+OneEdgeIn = {(b2,d2):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b1 in B for d1 in G ) <= 1) for b2 in B for d2 in G}
+
+#noself edge
+NoSelfEdge = {(b,d):m.addConstr(Y[(b,d),(b,d)] == 0) for b in B for d in G}
 
 
 #Minimum/maximum days off constraint

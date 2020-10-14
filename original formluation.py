@@ -4,7 +4,7 @@ import time
 from numpy import mean
 
 testFiles = []
-for num in range(15, 16):
+for num in range(73, 74):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
@@ -22,7 +22,6 @@ for file in testFiles:
 # =============================================================================
     
     
-    start = time.time()
     planningLength = dataMap['scheduleLength']
     G = range(planningLength)
     
@@ -55,6 +54,7 @@ for file in testFiles:
     
     F3 = dataMap['notAllowedShiftSequences3']
     
+    start = time.time()
     m = Model('RWS')
     
     #Varibles
@@ -73,6 +73,7 @@ for file in testFiles:
     if (minD > 1):
         minDayOffs = {d:m.addConstr(1 - quicksum(X[s,d] for s in S) <= 2 - quicksum((X[s,d-1] + X[s,d+1]) for s in S)) 
                                                     for d in D if (d > 0 and d < schedulingLength-1)}
+
     
     maxWorkDays = {d:m.addConstr(quicksum(X[s,dd] for s in S for dd in range(d,min(d+maxWork+1,len(D)))) <= maxWork) 
                                                 for d in D}
@@ -110,8 +111,9 @@ for file in testFiles:
     m.optimize()
     
     end = time.time()
-    timeElpased = end - start
-    times[file] = timeElpased
+    timeElapsed = end - start
+    times[file] = timeElapsed
+    print("time taken",timeElapsed)
     
     for d in D:
          for s in S:
