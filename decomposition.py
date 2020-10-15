@@ -2,8 +2,7 @@ from gurobipy import *
 from fileReader import *
 import time
 file = "testcases/Example"
-num = 1
-
+num = 1993
 dataMap = read_data(file+str(num)+".txt")
 
 planningLength = dataMap['scheduleLength']
@@ -230,7 +229,7 @@ def getLength (b):
     
     return len(block)
 
-def maximumAllowance(block,start):
+def maxAllowance(block,start):
     k = Model("maximum allowance of block b starting on d") 
     k.setParam('OutputFlag',0)
     #print(block,start)
@@ -250,17 +249,18 @@ def maximumAllowance(block,start):
     maximumCount = 0
     if k.status == GRB.OPTIMAL:
         maximumCount = X[block,start].x
-    return maximumCount
+    return int(round(maximumCount))
+
 
 
   
 BW = range(len(B))
 
+maximumAllowance = {}
 
 for b in BW:
     for d in G:
-        print(maximumAllowance(b,d))
-
+        maximumAllowance[b,d] = maxAllowance(b,d)
 
 
 m = Model("master")
@@ -269,6 +269,8 @@ m.setParam('Threads',1)
 
 #number of times that shift block b starts from day d
 X = {(b,d):m.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
+
+Y= {(b,d,n):m.addVar(vtype = GRB.BINARY) for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1)}
 
 
 #Terrible LP relaxation. Idea: construct a new variable similar to prac 2012 exam
@@ -279,16 +281,20 @@ OnShiftDemand = {(s,d):m.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == work
 #warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
 # the totak day offs >= the number of day off blocks * minimal length of day off block
 #total day offs  = schedule length - total shift days
-WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
+#WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
 
 
 #warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
 # the totak day offs <= the number of day off blocks * maximum length of day off block
 #total day offs  = schedule length - total shift days
-WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
+#WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
 
 #The maximum times that a block b can start on day d
-MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] <= maximumAllowance(b,d)) for b in BW for d in G}
+MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in range(1,maximumAllowance[b,d]+1))) for b in BW for d in G }
+
+OneYAtATime = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in range(1,maximumAllowance[b,d]+1)) <= 1) for b in BW for d in G}
+
+
 
 SolutionSet = []
 
@@ -306,6 +312,14 @@ def Callback (model, where):
                         N.append((b,d))
                     #print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
         
+        
+        Ysol = []
+        YV = {k: v for (k,v) in zip(Y.keys(), model.cbGetSolution(list(Y.values())))}
+        for d in G:
+            for b in BW:
+                for n in range(1,maximumAllowance[b,d]+1):
+                    if YV[b,d,n] > 0.9:
+                        Ysol.append((b,d,n))
         #Idea of improvement : better way to determine the factors of a hamiltonian circle
         if set(N) not in SolutionSet:
             SolutionSet.append(set(N))
@@ -358,7 +372,7 @@ def Callback (model, where):
                         valueX[(b,d)] = XV[b,d]
 
 
-            model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(valueX[b,d] - X[b,d] for (b,d) in infeasible) -1 >= 0)
+            model.cbLazy(quicksum(Y[b,d,n] for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1) if (b,d,n) not in Ysol) + quicksum(1- Y[b,d,n] for (b,d,n) in Ysol) -1 >= 0)
 # =============================================================================
 
 # =============================================================================

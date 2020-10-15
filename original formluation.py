@@ -4,7 +4,7 @@ import time
 from numpy import mean
 
 testFiles = []
-for num in range(73, 74):
+for num in range(1993, 1994):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
