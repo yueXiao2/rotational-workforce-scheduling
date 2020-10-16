@@ -1,22 +1,16 @@
 from gurobipy import *
 from fileReader import *
+import math
 import time
 
-fileName = "elapsed times (without cuts).txt"
-
-timesFile = open(fileName,"w+")
-
 testFiles = []
-for num in range(1, 2000):
+for num in range(1, 2):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
 
 for file in testFiles:
     dataMap = read_data(file)
-    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
-        continue
-    print(file)
     
     
     
@@ -62,6 +56,7 @@ for file in testFiles:
     F3 = dataMap['notAllowedShiftSequences3']
     
     B = []
+    W = []
     
     DW = range(maxWork)
     
@@ -127,12 +122,25 @@ for file in testFiles:
             
             b = tuple(b)
             B.append(b)
+            W.append(b)
     
         else:
             L = L + 1
                     
-    print("feasible blocks found")
+    print("feasible work blocks found")
+  
+    #generate work off blocks
+    def BreakBlockGen():
+        O = []
+        for i in range(minD,maxD+1):
+            o = []
+            for j in range(i):
+                o.append(3)
+            O.append(tuple(o))
+        return O
     
+    O = BreakBlockGen()
+    B = B + O
     #Computes the converage of a shift block b starting on day d
     #return: list of shifts s in day g that are covered
     def Coverage(b,d):
@@ -151,8 +159,8 @@ for file in testFiles:
     def C(s,d):
         CList = []
         for g in G:
-            for b in range(len(B)):
-                if (s,d) in Coverage(B[b],g):
+            for b in range(len(W)):
+                if (s,d) in Coverage(W[b],g):
                     CList.append(tuple([b,g]))
         return CList
     
@@ -162,8 +170,8 @@ for file in testFiles:
     def additionEmp (n1, n2):
         additionCount = 0
         
-        shiftBlock1 = B[n1[0]]
-        shiftBlock2 = B[n2[0]]
+        shiftBlock1 = W[n1[0]]
+        shiftBlock2 = W[n2[0]]
         
         #first day of the block
         startDay1 = n1[1]
@@ -198,8 +206,8 @@ for file in testFiles:
         cantUse = []
         for n1 in N:
             for n2 in N:
-                shiftBlock1 = B[n1[0]]
-                shiftBlock2 = B[n2[0]]
+                shiftBlock1 = W[n1[0]]
+                shiftBlock2 = W[n2[0]]
         
                 #first day of the block
                 startDay1 = n1[1]
@@ -244,13 +252,17 @@ for file in testFiles:
         
         return len(block)
     
+    BW = range(len(B))
+    WL = range(len(W))
+    OL = range(len(O))
+    
     def maxAllowance(block,start):
         k = Model("maximum allowance of block b starting on d") 
         k.setParam('OutputFlag',0)
         #print(block,start)
         X = {}
         #number of times that shift block b starts from day d
-        X = {(b,d):k.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
+        X = {(b,d):k.addVar(vtype = GRB.INTEGER) for d in G for b in WL}
     
         Demand = {(s,d):k.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
         
@@ -266,15 +278,89 @@ for file in testFiles:
             maximumCount = X[block,start].x
         return int(round(maximumCount))
     
-    
+    def maxDayOffs(block):
+        totalWork = 0
+        bLength = len(block)
+        
+        for s in S:
+            for d in G:
+                totalWork += workDemand[s][d]
+        
+        totalDayOffs = schedulingLength - totalWork
+        
+        maxNum = math.floor(totalDayOffs/bLength)
+        
+        return maxNum
     
       
-    BW = range(len(B))
+
     
     maximumAllowance = {}
+    maximumAllowanceAnyDay = {}
+    START = time.time()
+    for b in BW:
+        if B[b] in W:
+            for d in G:
+                wIndex = W.index(B[b])
+                
+                maximumAllowance[b,d] = maxAllowance(wIndex,d)
+            maximumAllowanceAnyDay[b] = max(maximumAllowance[b,d] for d in G)
+        else:
+            maximumAllowanceAnyDay[b] = maxDayOffs(B[b])
+    
+    print("sets found ")
+    FINISHE = time.time()
+    print(FINISHE - START)
+    M = {}
     
     for b in BW:
-        for d in G:
-            maximumAllowance[b,d] = maxAllowance(b,d)
+        M[b] = range(maximumAllowanceAnyDay[b])
+    
+    
+    Nodes = []
+    
+    for b in BW:
+        for k in M[b]:
+            for d in D:
+                Nodes.append((b,d,k))
+    
+    
+    
+    #B - set of all the blocks; W - set of work blocks; O - set of day off blocks; W+O = B
+    print("sets found")
+    
+    m = Model("DAG")
+
+    X = {(b,d,k):m.addVar(vtype = GRB.BINARY) for b in BW for d in D for k in M[b]}
+    
+    Y = {(n1,n2):m.addVar(vtype = GRB.BINARY) for n1 in Nodes for n2 in Nodes}
+    
+    #Conservation of Flows
+    OneEdgeIn = {j:m.addConstr(quicksum(Y[i,j] for i in Nodes) <= 1) for j in Nodes}
+    OneEdgeOut = {i:m.addConstr(quicksum(Y[i,j] for j in Nodes) <= 1) for i in Nodes}
+    
+    #Only use k if k-1 is used
+    XIncrement = {(b,d,k):m.addConstr(X[b,d,k-1] >= X[b,d,k]) for b in BW for k in M[b] for d in D if k > 0}
+    
+    # at most one block starts on any day
+    OnlyOneShiftPerDay = {d:m.addConstr(quicksum(X[b,d,k] for b in BW for k in M[b]) <= 1) for d in D}
+    
+    # there can only be one block at the time
+    BlockOccupation = {d:m.addConstr(quicksum(X[bb,dd,kk] for bb in BW for dd in range(d+1, d+len(B[b])) for kk in M[bb]) <= (len(B[b])-1)*(1 - X[b,d,k])) 
+                    for d in D for b in BW for d in D for k in M[b] if d + len(B[b]) <= schedulingLength and len(B[b]) > 1}
+    
+    #
+    WorkGapsLeft = {(n):m.addConstr(quicksum(Y[n,n1] for n1 in Nodes if B[n1[0]] in O) == 1) for n in Nodes if B[n[0]] in W}
+    WorkGapsRight = {(n):m.addConstr(quicksum(Y[n1,n] for n1 in Nodes if B[n1[0]] in O) == 1) for n in Nodes if B[n[0]] in W}
+    
+    DayOffGapsLeft = {(n):m.addConstr(quicksum(Y[n,n1] for n1 in Nodes if B[n1[0]] in W) == 1) for n in Nodes if B[n[0]] in O}
+    DayOffGapsRight = {(n):m.addConstr(quicksum(Y[n1,n] for n1 in Nodes if B[n1[0]] in W) == 1) for n in Nodes if B[n[0]] in O}
+    
+    #Connect X and Y
+    YAndX = {(n1,n2):m.addConstr(X[n1] + X[n2] >= 2 * Y[n1,n2]) for n1 in Nodes for n2 in Nodes}
+    
+    m.optimize()
+    
+    
     
     
