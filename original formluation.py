@@ -3,24 +3,30 @@ from fileReader import *
 import time
 from numpy import mean
 
+fileName = "elapsed times (original).txt"
+
+timesFile = open(fileName,"w+")
+
+systemTime = time.time()
+
 testFiles = []
-for num in range(1993, 1994):
+for num in range(1, 2000):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
 
 for file in testFiles:
-    print(file)
+    
     dataMap = read_data(file)
     
 # =============================================================================
 #     ################################################################
-#     if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
-#         continue
+    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+        continue
 #     
 #     ###############################################################
 # =============================================================================
-    
+    print(file)
     
     planningLength = dataMap['scheduleLength']
     G = range(planningLength)
@@ -113,9 +119,14 @@ for file in testFiles:
     end = time.time()
     timeElapsed = end - start
     times[file] = timeElapsed
+    fileStr = file +" "+str(timeElapsed) + "\n"
+    
+    timesFile.write(fileStr)
     print("time taken",timeElapsed)
     
-    for d in D:
-         for s in S:
-             if X[s,d].x > 0.9:
-                 print(shiftType[s],"on day",d,":",X[s,d].x)
+# =============================================================================
+#     for d in D:
+#          for s in S:
+#              if X[s,d].x > 0.9:
+#                  print(shiftType[s],"on day",d,":",X[s,d].x)
+# =============================================================================
