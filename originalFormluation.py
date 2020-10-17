@@ -3,20 +3,7 @@ from fileReader import *
 import time
 from numpy import mean
 
-fileName = "elapsed times (original).txt"
-
-systemTime = time.time()
-
-timesFile = open(fileName,'w')
-
-testFiles = []
-for num in range(16, 17):
-    testFiles.append('testcases/Example' + str(num) + '.txt')
-
-times = {}
-
-for file in testFiles:
-    
+def originalRecipe(queue, file):
     dataMap = read_data(file)
     
 # =============================================================================
@@ -116,17 +103,11 @@ for file in testFiles:
     
     m.optimize()
     
-    end = time.time()
-    timeElapsed = end - start
-    times[file] = timeElapsed
-    
-    fileStr = file +" "+str(timeElapsed) + "\n"
-    print(fileStr)
-    
-    timesFile.write(fileStr)
-    timesFile.close()
-    
-    print("time taken",timeElapsed)
+    if m.status == GRB.INFEASIBLE:
+        if queue != None:
+            queue.put("Infeasible")
+    if queue != None:
+        queue.put("Feasible")
     
 # =============================================================================
 #     for d in D:
