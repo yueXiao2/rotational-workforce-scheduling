@@ -3,26 +3,31 @@ from fileReader import *
 import time
 from numpy import mean
 
+fileName = "elapsed times (original).txt"
+
+systemTime = time.time()
+
+timesFile = open(fileName,'w')
+
 testFiles = []
-for num in range(1, 2):
+for num in range(16, 17):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
 
 for file in testFiles:
-    print(file)
+    
     dataMap = read_data(file)
     
 # =============================================================================
 #     ################################################################
-#     if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
-#         continue
+#    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+#        continue
 #     
 #     ###############################################################
 # =============================================================================
+    print(file)
     
-    
-    start = time.time()
     planningLength = dataMap['scheduleLength']
     G = range(planningLength)
     
@@ -55,6 +60,7 @@ for file in testFiles:
     
     F3 = dataMap['notAllowedShiftSequences3']
     
+    start = time.time()
     m = Model('RWS')
     
     #Varibles
@@ -73,6 +79,7 @@ for file in testFiles:
     if (minD > 1):
         minDayOffs = {d:m.addConstr(1 - quicksum(X[s,d] for s in S) <= 2 - quicksum((X[s,d-1] + X[s,d+1]) for s in S)) 
                                                     for d in D if (d > 0 and d < schedulingLength-1)}
+
     
     maxWorkDays = {d:m.addConstr(quicksum(X[s,dd] for s in S for dd in range(d,min(d+maxWork+1,len(D)))) <= maxWork) 
                                                 for d in D}
@@ -110,10 +117,20 @@ for file in testFiles:
     m.optimize()
     
     end = time.time()
-    timeElpased = end - start
-    times[file] = timeElpased
+    timeElapsed = end - start
+    times[file] = timeElapsed
     
-    for d in D:
-         for s in S:
-             if X[s,d].x > 0.9:
-                 print(shiftType[s],"on day",d,":",X[s,d].x)
+    fileStr = file +" "+str(timeElapsed) + "\n"
+    print(fileStr)
+    
+    timesFile.write(fileStr)
+    timesFile.close()
+    
+    print("time taken",timeElapsed)
+    
+# =============================================================================
+#     for d in D:
+#          for s in S:
+#              if X[s,d].x > 0.9:
+#                  print(shiftType[s],"on day",d,":",X[s,d].x)
+# =============================================================================
