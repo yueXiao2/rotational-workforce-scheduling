@@ -2,7 +2,7 @@ from gurobipy import *
 from fileReader import *
 
 file = "testcases/Example"
-num = 16
+num = 1
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -137,8 +137,8 @@ def Coverage(b,d):
 def C(s,d):
     CList = []
     for g in G:
-        for b in range(len(B)):
-            if (s,d) in Coverage(B[b],g):
+        for b in B:
+            if (s,d) in Coverage(b,g):
                 CList.append(tuple([b,g]))
     return CList
 
@@ -230,53 +230,103 @@ def getLength (b):
     
     return len(block)
 
+def maxAllowance(block,start):
+    k = Model("maximum allowance of block b starting on d") 
+    k.setParam('OutputFlag',0)
+    #print(block,start)
+    X = {}
+    #number of times that shift block b starts from day d
+    X = {(b,d):k.addVar(vtype = GRB.INTEGER) for d in G for b in B}
+
+    Demand = {(s,d):k.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
+    
+    k.setObjective(X[block, start], GRB.MAXIMIZE)
+    k.optimize()
+    
+    if k.status == GRB.INF_OR_UNBD:
+        k.setParam("DualReductions",0)
+        k.optimize()
+    
+    maximumCount = 0
+    if k.status == GRB.OPTIMAL:
+        maximumCount = X[block,start].x
+    return int(round(maximumCount))
+
+
+
+maximumAllowance = {}
+for b in B:
+    for d in G:         
+        maximumAllowance[b,d] = maxAllowance(b,d)
+
+
+print("maximum allowances found ")
+
+M = {}
+
+for b in B:
+    for d in G:
+        M[b,d] = range(maximumAllowance[b,d])
+
+
+Nodes = []
+
+for b in B:
+    for d in G:
+        for k in M[b,d]:
+            Nodes.append((b,d,k))
+
+
+
 m = Model("Alt Model")
 
 #Variables
 #Block b starts on day d
-X = {(b,d) : m.addVar(vtype=GRB.BINARY) for b in B for d in G}
+X = {(b,d,k) : m.addVar(vtype=GRB.BINARY) for b in B for d in G for k in M[b,d]}
 
 #Node (b1,d1) is followed by node (b2,d2)
-Y = {((b1,d1), (b2,d2)) : m.addVar(vtype=GRB.BINARY) for b1 in B for b2 in B for d1 in G for d2 in G}
+Y = {(n1,n2) : m.addVar(vtype=GRB.BINARY) for n1 in Nodes for n2 in Nodes}
 
 #Constraints
 
-for b1 in B:
-    for b2 in B:
-        for d1 in G:
-            for d2 in G:
-                m.addConstr(X[b1,d1] + X[b2,d2] >= 2 * Y[(b1,d1),(b2,d2)])
+#Only use k if k-1 is used
+XIncrement = {(b,d,k):m.addConstr(X[b,d,k-1] >= X[b,d,k]) for b in B for d in G for k in M[b,d]  if k > 0}
+
+
+YAndX = {(n1,n2):m.addConstr(X[n1] + X[n2] >= 2 * Y[n1,n2]) for n1 in Nodes for n2 in Nodes}
                 
-Employee = m.addConstr(quicksum( additionEmp((b1,d1),(b2,d2))* Y[(b1,d1),(b2,d2)] for b1 in B for d1 in G for b2 in B for d2 in G) == numEmployee)
+
+Employee = m.addConstr(quicksum( additionEmp((n1[0],n1[1]),(n2[0],n2[1]))* Y[n1,n2] for n1 in Nodes for n2 in Nodes) == numEmployee)
 
 #Conservation of flow
+OneEdgeIn = {(i,j):m.addConstr(quicksum(Y[ii,j] for ii in Nodes) == 1 * Y[i,j]) for i in Nodes for j in Nodes}
+OneEdgeOut = {(i,j):m.addConstr(quicksum(Y[i,j] for jj in Nodes) == 1 * Y[i,j]) for i in Nodes for j in Nodes}
 
-#TERRIBLE LP RELAXATION
-# problematic constraints, removing this makes the model feasible
-OneEdgeOut = {(b1,d1):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b2 in B for d2 in G ) <= 1) for b1 in B for d1 in G}
-OneEdgeIn = {(b2,d2):m.addConstr(quicksum(Y[(b1,d1),(b2,d2)] for b1 in B for d1 in G ) <= 1) for b2 in B for d2 in G}
 
 #noself edge
-NoSelfEdge = {(b,d):m.addConstr(Y[(b,d),(b,d)] == 0) for b in B for d in G}
+NoSelfEdge = {n:m.addConstr(Y[n,n] == 0) for n in Nodes}
 
 
 #Minimum/maximum days off constraint
-for b1 in B:
-    for b2 in B:
-        for d1 in G:
-            for d2 in G:
-                blockEnd = ((d1 + len(b1)) - 1)% planningLength
-                offwork = d2 - blockEnd -1
+MinDayOffs = {}
+MaxDayOffs = {}
+for n1 in Nodes:
+    for n2 in Nodes:
+        (b1,d1,k1) = n1
+        (b2,d2,k2) = n2
+        
+        blockEnd = ((d1 + len(b1)) - 1)% planningLength
+        offwork = d2 - blockEnd -1
                 
-                if blockEnd >= d2:
-                    offwork += 7
+        if blockEnd >= d2:
+            offwork += 7
                 
-                m.addConstr(Y[(b1,d1), (b2,d2)]*offwork <= maxD)
-                m.addConstr(offwork >= minD *Y[(b1,d1), (b2,d2)])
+            m.addConstr(Y[n1, n2]*offwork <= maxD)
+            m.addConstr(offwork >= minD *Y[n1, n2])
 
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
-OnShiftDemand = {(s,d):m.addConstr( quicksum(X[B[b],g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
+OnShiftDemand = {(s,d):m.addConstr( quicksum(X[b,g,k] for (b,g) in C(s,d) for k in M[b,g]) == workDemand[s][d]) for s in S for d in G}
 
 
 #Questionable constraint - one employee can take more than one block
@@ -288,12 +338,13 @@ print(minD)
 if m.status != GRB.INFEASIBLE:
     for b in B:
         for d in G:
-            if X[b,d].x > 0.9:
-                print(b,d)
-    for b1 in B:
-        for b2 in B:
-            for d1 in G:
-                for d2 in G:
-                    if Y[(b1,d1), (b2,d2)].x > 0.9:
-                        print("Shift block", b1, "starts on day", d1, "and shift block", b2, "starts on day", d2)
-                        print("-------------------------------------------")
+            for k in M[b,d]:
+                if X[b,d,k].x > 0.9:
+                    print(b,d)
+    for n1 in Nodes:
+        for n2 in Nodes:
+            if Y[n1, n2].x > 0.9:
+                (b1,d1,k1) = n1
+                (b2,d2,k2) = n2
+                print("Shift block", b1, "starts on day", d1, k1,'times --------->',"and shift block", b2, "starts on day", d2,k2,'times')
+                print("-------------------------------------------")

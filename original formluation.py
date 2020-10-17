@@ -5,12 +5,12 @@ from numpy import mean
 
 fileName = "elapsed times (original).txt"
 
-timesFile = open(fileName,"w+")
-
 systemTime = time.time()
 
+timesFile = open(fileName,'w')
+
 testFiles = []
-for num in range(1, 2000):
+for num in range(16, 17):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
@@ -21,8 +21,8 @@ for file in testFiles:
     
 # =============================================================================
 #     ################################################################
-    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
-        continue
+#    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+#        continue
 #     
 #     ###############################################################
 # =============================================================================
@@ -119,9 +119,13 @@ for file in testFiles:
     end = time.time()
     timeElapsed = end - start
     times[file] = timeElapsed
+    
     fileStr = file +" "+str(timeElapsed) + "\n"
+    print(fileStr)
     
     timesFile.write(fileStr)
+    timesFile.close()
+    
     print("time taken",timeElapsed)
     
 # =============================================================================

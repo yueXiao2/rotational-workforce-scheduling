@@ -321,8 +321,7 @@ for file in testFiles:
     
     for b in BW:
         for k in M[b]:
-            for d in D:
-                Nodes.append((b,d,k))
+            Nodes.append((b,k))
     
     
     
@@ -331,7 +330,7 @@ for file in testFiles:
     
     m = Model("DAG")
 
-    X = {(b,d,k):m.addVar(vtype = GRB.BINARY) for b in BW for d in D for k in M[b]}
+    X = {(b,k):m.addVar(vtype = GRB.BINARY) for b in BW for k in M[b]}
     
     Y = {(n1,n2):m.addVar(vtype = GRB.BINARY) for n1 in Nodes for n2 in Nodes}
     
@@ -340,21 +339,22 @@ for file in testFiles:
     OneEdgeOut = {i:m.addConstr(quicksum(Y[i,j] for j in Nodes) <= 1) for i in Nodes}
     
     #Only use k if k-1 is used
-    XIncrement = {(b,d,k):m.addConstr(X[b,d,k-1] >= X[b,d,k]) for b in BW for k in M[b] for d in D if k > 0}
-    
-    # at most one block starts on any day
-    OnlyOneShiftPerDay = {d:m.addConstr(quicksum(X[b,d,k] for b in BW for k in M[b]) <= 1) for d in D}
-    
-    # there can only be one block at the time
-    BlockOccupation = {d:m.addConstr(quicksum(X[bb,dd,kk] for bb in BW for dd in range(d+1, d+len(B[b])) for kk in M[bb]) <= (len(B[b])-1)*(1 - X[b,d,k])) 
-                    for d in D for b in BW for d in D for k in M[b] if d + len(B[b]) <= schedulingLength and len(B[b]) > 1}
+    XIncrement = {(b,k):m.addConstr(X[b,k-1] >= X[b,k]) for b in BW for k in M[b]  if k > 0}
+
     
     #
-    WorkGapsLeft = {(n):m.addConstr(quicksum(Y[n,n1] for n1 in Nodes if B[n1[0]] in O) == 1) for n in Nodes if B[n[0]] in W}
-    WorkGapsRight = {(n):m.addConstr(quicksum(Y[n1,n] for n1 in Nodes if B[n1[0]] in O) == 1) for n in Nodes if B[n[0]] in W}
+    WorkGapsLeft = {(n):m.addConstr(quicksum(Y[n,n1] for n1 in Nodes if B[n1[0]] in O) <= 1) for n in Nodes if B[n[0]] in W}
+    WorkGapsRight = {(n):m.addConstr(quicksum(Y[n1,n] for n1 in Nodes if B[n1[0]] in O) <= 1) for n in Nodes if B[n[0]] in W}
     
-    DayOffGapsLeft = {(n):m.addConstr(quicksum(Y[n,n1] for n1 in Nodes if B[n1[0]] in W) == 1) for n in Nodes if B[n[0]] in O}
-    DayOffGapsRight = {(n):m.addConstr(quicksum(Y[n1,n] for n1 in Nodes if B[n1[0]] in W) == 1) for n in Nodes if B[n[0]] in O}
+    DayOffGapsLeft = {(n):m.addConstr(quicksum(Y[n,n1] for n1 in Nodes if B[n1[0]] in W) <= 1) for n in Nodes if B[n[0]] in O}
+    DayOffGapsRight = {(n):m.addConstr(quicksum(Y[n1,n] for n1 in Nodes if B[n1[0]] in W) <= 1) for n in Nodes if B[n[0]] in O}
+    
+    NoConsectWork = {(n1,n2):m.addConstr(Y[n1,n2] == 0) for n1 in Nodes for n2 in Nodes if B[n1[0]] in W and B[n2[0]] in W}
+    NoConsectDayOffs = {(n1,n2):m.addConstr(Y[n1,n2] == 0) for n1 in Nodes for n2 in Nodes if B[n1[0]] in O and B[n2[0]] in O}
+    
+    
+    
+    
     
     #Connect X and Y
     YAndX = {(n1,n2):m.addConstr(X[n1] + X[n2] >= 2 * Y[n1,n2]) for n1 in Nodes for n2 in Nodes}

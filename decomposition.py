@@ -4,18 +4,18 @@ import time
 
 fileName = "elapsed times (without cuts).txt"
 
-timesFile = open(fileName)
+timesFile = open(fileName,'w')
 
 testFiles = []
-for num in range(1, 2000):
+for num in range(16, 17):
     testFiles.append('testcases/Example' + str(num) + '.txt')
 
 times = {}
 
 for file in testFiles:
     dataMap = read_data(file)
-    if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
-        continue
+    #if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+        #continue
     print(file)
     
     
@@ -406,6 +406,7 @@ for file in testFiles:
     print(fileStr)
     
     timesFile.write(fileStr)
+    timesFile.close()
     
     print("time taken",timeElapsed)
     if m.status == GRB.INFEASIBLE:
@@ -452,7 +453,7 @@ for file in testFiles:
                 for i in NN:
                     for j in NN:
                         if C[i,j].x > 0.9:
-                            #print("node "+ str(i) + " to node " + str(j))
+                            print("node "+ str(i) + " to node " + str(j))
         # =============================================================================
         # =============================================================================
         
