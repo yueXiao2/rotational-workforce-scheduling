@@ -323,8 +323,9 @@ def decomp(queue, file):
             else:
                 print("ohhhhh cyclic!")
                 model.terminate()
-                queue.put("Infeasible")
-                return False
+                if queue != None:
+                    queue.put("Infeasible")
+                return
             
             
             NN = range(len(N))
@@ -383,8 +384,8 @@ def decomp(queue, file):
 
     if m.status == GRB.INFEASIBLE:
         print("no solution")
-        queue.put("Infeasible")
-        return False
+        if queue != None:
+            queue.put("Infeasible")
     else:
         for d in G:
             for b in BW:
@@ -421,8 +422,8 @@ def decomp(queue, file):
         
         if p.status == GRB.INFEASIBLE:
             print("fuck")
-            queue.put("Infeasible")
-            return False
+            if queue != None:
+                queue.put("Infeasible")
             #break
         else:
             if p.status != GRB.INFEASIBLE:
@@ -430,8 +431,8 @@ def decomp(queue, file):
                     for j in NN:
                         if C[i,j].x > 0.9:
                             print("node "+ str(i) + " to node " + str(j))
-            queue.put("Feasible")
-            return True
+            if queue != None:
+                queue.put("Feasible")
         # =============================================================================
         # =============================================================================
         

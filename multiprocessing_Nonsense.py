@@ -14,6 +14,8 @@ times = {}
 
 q = Queue()
 
+timeLimit = 60
+
 for file in testFiles:
     dataMap = read_data(file)
     if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
@@ -26,14 +28,16 @@ for file in testFiles:
     timeTaken = 0
     while p.is_alive():
         timeTaken = time.time() - startTime
-        if timeTaken >= 5:
+        if timeTaken >= timeLimit:
             print("Solve need more then 30 minutes")
-            q.put("took too long")
             p.terminate()
             break
 
     result = q.get()
-    timesFile.write("File " + file + " needed " + str(timeTaken) + " seconds to finish with result " + result + "\n")
+    if timeTaken >= timeLimit:
+        timesFile.write("File " + file + " did't complete in time.\n")
+    else:
+        timesFile.write("File " + file + " needed " + str(timeTaken) + " seconds to finish with result " + result + "\n")
     # Cleanup
     p.join()
 timesFile.close()
