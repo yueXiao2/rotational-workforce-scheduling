@@ -5,6 +5,11 @@ import time
 
 timeLimit = 60
 
+times = {}
+
+def constraints(dataMap):
+    return (dataMap['numEmployees'] <= 20 or dataMap['numEmployees'] > 40 or dataMap['numShifts'] == 2)
+
 def decomp_time():
     fileName = "elapsed times (without cuts).txt"
     
@@ -13,14 +18,12 @@ def decomp_time():
     testFiles = []
     for num in range(1, 2000):
         testFiles.append('testcases/Example' + str(num) + '.txt')
-    
-    times = {}
-    
+        
     q = Queue()
     
     for file in testFiles:
         dataMap = read_data(file)
-        if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+        if constraints(dataMap):
             continue
         
         p = Process(target=decomp, name="decomp", args=(q, file))
@@ -54,13 +57,11 @@ def original_time():
     for num in range(1, 2000):
         testFiles.append('testcases/Example' + str(num) + '.txt')
     
-    times = {}
-    
     q = Queue()
     
     for file in testFiles:
         dataMap = read_data(file)
-        if (dataMap['numEmployees'] >= 20 or dataMap['numShifts'] == 3):
+        if constraints(dataMap):
             continue
         
         p = Process(target=originalRecipe, name="original", args=(q, file))
