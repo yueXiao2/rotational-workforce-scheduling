@@ -323,7 +323,7 @@ def decomp(queue, file):
                 print("solution appended. current length: " + str(len(SolutionSet)))
             else:
                 print("ohhhhh cyclic!")
-                isFeasible = True
+                isFeasible = False
                 model.terminate()
                 if queue != None:
                     queue.put("Infeasible")
@@ -471,7 +471,11 @@ def decomp(queue, file):
         if (isFeasible == False):
             print(" no subproblem solutions")
                     #print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
+            if queue != None:
+                queue.put("Infeasible")
         print("----------------------------------------")
+        if queue != None:
+            queue.put("Infeasible")
         
         # =============================================================================
         # =============================================================================
