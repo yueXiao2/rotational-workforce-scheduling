@@ -287,6 +287,8 @@ X = {(b,d,k) : m.addVar(vtype=GRB.BINARY) for b in B for d in G for k in M[b,d]}
 #Node (b1,d1) is followed by node (b2,d2)
 Y = {(n1,n2) : m.addVar(vtype=GRB.BINARY) for n1 in Nodes for n2 in Nodes}
 
+Z = {n:m.addVar(vtype = GRB.BINARY) for n in Nodes}
+
 #Constraints
 
 #Only use k if k-1 is used
@@ -294,13 +296,14 @@ XIncrement = {(b,d,k):m.addConstr(X[b,d,k-1] >= X[b,d,k]) for b in B for d in G 
 
 
 YAndX = {(n1,n2):m.addConstr(X[n1] + X[n2] >= 2 * Y[n1,n2]) for n1 in Nodes for n2 in Nodes}
-                
+YAndZ = {(n): Z[n] >= Y[n,n2] for n in Nodes for n2 in Nodes}
+YAndZ2 = {(n): Z[n] >= Y[n2,n] for n in Nodes for n2 in Nodes}
 
 Employee = m.addConstr(quicksum( additionEmp((n1[0],n1[1]),(n2[0],n2[1]))* Y[n1,n2] for n1 in Nodes for n2 in Nodes) == numEmployee)
 
 #Conservation of flow
-OneEdgeIn = {(i,j):m.addConstr(quicksum(Y[ii,j] for ii in Nodes) == 1 * Y[i,j]) for i in Nodes for j in Nodes}
-OneEdgeOut = {(i,j):m.addConstr(quicksum(Y[i,j] for jj in Nodes) == 1 * Y[i,j]) for i in Nodes for j in Nodes}
+OneEdgeIn = {j:m.addConstr(quicksum(Y[ii,j] for ii in Nodes) == 1 * Z[j]) for j in Nodes}
+OneEdgeOut = {i:m.addConstr(quicksum(Y[i,jj] for jj in Nodes) == 1 * Z[i]) for i in Nodes}
 
 
 #noself edge
@@ -308,22 +311,6 @@ NoSelfEdge = {n:m.addConstr(Y[n,n] == 0) for n in Nodes}
 
 
 #Minimum/maximum days off constraint
-<<<<<<< HEAD
-for b1 in B:
-    for b2 in B:
-        for d1 in G:
-            for d2 in G:
-                if (d1 + len(b1)) % planningLength <= d2:
-                    m.addConstr(( d2 - (d1 + len(b1) % planningLength)) >= minD * Y[(b1,d1), (b2,d2)])
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*( d2 - (d1 + len(b1) % planningLength)) <= maxD)
-                else:                    
-                    m.addConstr(Y[(b1,d1), (b2,d2)]*(d2 - (d1 + len(b1) % planningLength) + 7) <= maxD)
-                    m.addConstr((d2 - (d1 + len(b1) % planningLength) + 7) >= Y[(b1,d1), (b2,d2)]* minD)
-
-
-#sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
-OnShiftDemand = {(s,d) : m.addConstr(quicksum(X[B[b],g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
-=======
 MinDayOffs = {}
 MaxDayOffs = {}
 for n1 in Nodes:
@@ -337,18 +324,17 @@ for n1 in Nodes:
         if blockEnd >= d2:
             offwork += 7
                 
-            m.addConstr(Y[n1, n2]*offwork <= maxD)
-            m.addConstr(offwork >= minD *Y[n1, n2])
+            MinDayOffs[n1,n2] = m.addConstr(Y[n1, n2]*offwork <= maxD)
+            MaxDayOffs[n1,n2] = m.addConstr(offwork >= minD *Y[n1, n2])
 
 
 #sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
 OnShiftDemand = {(s,d):m.addConstr( quicksum(X[b,g,k] for (b,g) in C(s,d) for k in M[b,g]) == workDemand[s][d]) for s in S for d in G}
 
->>>>>>> 518ccb388adcd3a7f0f5b20d2626d1281ea0424f
 
 #Questionable constraint - one employee can take more than one block
 #Enough shifts are connected to cover the whole scheduling length
-CoversEnoughWeeks = m.addConstr(quicksum(Y[(b1,d1), (b2,d2)] for b1 in B for b2 in B for d1 in G for d2 in G) == schedulingLength)
+#CoversEnoughWeeks = m.addConstr(quicksum(Y[(b1,d1), (b2,d2)] for b1 in B for b2 in B for d1 in G for d2 in G) == numEmployee - 1)
 
 m.optimize()
 print(minD)

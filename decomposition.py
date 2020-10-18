@@ -293,6 +293,7 @@ def decomp(queue, file):
     
     
     SolutionSet = []
+    isFeasible = True
     
     def Callback (model, where):
         if where == GRB.Callback.MIPSOL:
@@ -322,6 +323,7 @@ def decomp(queue, file):
                 print("solution appended. current length: " + str(len(SolutionSet)))
             else:
                 print("ohhhhh cyclic!")
+                isFeasible = True
                 model.terminate()
                 if queue != None:
                     queue.put("Infeasible")
@@ -347,7 +349,54 @@ def decomp(queue, file):
             
             CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
             s.setParam('OutputFlag',0)
-            s.optimize()
+            s.setParam("LazyConstraints",1)
+            
+            
+            def CallbackSubCycle (model, where):
+                if where == GRB.Callback.MIPSOL:
+                    print("begining the subcycle elimination!")
+                    
+                    SubSol = []
+                    Sub = {k: v for (k,v) in zip(V.keys(), model.cbGetSolution(list(V.values())))}
+                    for k in Sub:
+                        if Sub[k] > 0.9:
+                            SubSol.append(k)
+                    #Idea of improvement : better way to determine the factors of a hamiltonian circle
+                    # Done is the set of squares already looked at
+                    Done = set()
+                    SubPaths = []
+                    for s in SubSol:
+                        
+                        if s[0] not in Done:
+                            # Find the path that starts at this square and store it in Path
+                            Path = set()
+                            currentNode = s[0]
+                            
+                            while currentNode not in Path:
+                                
+                                for s2 in SubSol:
+                                    (f2,t2) = s2
+                                    if s2[0] == currentNode:
+                                        Path.add(currentNode)
+                                        currentNode = s2[1]
+                                
+                            
+                            if len(Path) < len(SubSol):
+                                SubPaths.append(Path)
+                            Done |= Path
+                    
+                    if len(SubPaths) > 0:
+                        LongestSubCycleLength = 0
+                        LongestSub = set()
+                        
+                        for i in SubPaths:
+                            if len(i) > LongestSubCycleLength:
+                                LongestSub = i
+                                LongestSubCycleLength = len(i)
+                        
+                        model.cbLazy(quicksum(V[n1,n2] 
+                                            for n1 in LongestSub for n2 in LongestSub
+                                            if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
             
     # =============================================================================
     #         if s.status != GRB.INFEASIBLE:
@@ -357,7 +406,7 @@ def decomp(queue, file):
     #                         print("node "+ str(i) + " to node " + str(j))
     # =============================================================================
             
-            
+            s.optimize(CallbackSubCycle)
         
             if s.status == GRB.INFEASIBLE:
                 
@@ -371,9 +420,41 @@ def decomp(queue, file):
     
     
                 model.cbLazy(quicksum(Y[b,d,n] for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1) if (b,d,n) not in Ysol) + quicksum(1- Y[b,d,n] for (b,d,n) in Ysol) -1 >= 0)
+                
+            else:
+                
+                
+                if s.status != GRB.INFEASIBLE:
+                    Path = {}
+                    for i in NN:
+                        for j in NN:
+                            if V[i,j].x > 0.9:
+                                print("node "+ str(i) + " to node " + str(j))
+                                Path[i] = j
+                    keys = Path.keys()
+                    
+                    for i in keys:
+                        start = i
+                        break
+                    
+                    current = start
+                    
+                    Order = []
+                    
+                    for i in Path:
+                        current = Path[current]
+                        Order.append(current)
+                        
+                    print(Order)
+                if queue != None:
+                    queue.put("Feasible")
     # =============================================================================
     
     # =============================================================================
+    
+    
+    
+                
     m.setParam('LazyConstraints', 1)
     
     
@@ -383,56 +464,15 @@ def decomp(queue, file):
     m.optimize(Callback)
 
     if m.status == GRB.INFEASIBLE:
-        print("no solution")
+        print("no master solution")
         if queue != None:
             queue.put("Infeasible")
     else:
-        for d in G:
-            for b in BW:
-                if X[b,d].x > 0:
-                    num = round(X[b,d].x)
-                    for number in range(num):
-                        N.append((b,d))
+        if (isFeasible == False):
+            print(" no subproblem solutions")
                     #print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
         print("----------------------------------------")
         
-        # =============================================================================
-        
-        NN = range(len(N))
-        K = cantUseNodes(N, B, planningLength, minD, maxD, F3)
-        
-        p = Model("subproblem")
-        
-        #1 if node j comes after node i
-        C = {(i,j):p.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
-        
-        # the total additional employees needed will equal to the total number of employees
-        EmployeeNum2 = p.addConstr(quicksum(additionEmp(N[i],N[j], B, planningLength)*C[i,j] for i in NN for j in NN) == numEmployee)
-        
-        #Conservation of flow
-        OneEdgeOut2 = {i:p.addConstr(quicksum(C[i,j] for j in NN ) == 1) for i in NN}
-        OneEdgeIn2 = {j:p.addConstr(quicksum(C[i,j] for i in NN  ) == 1) for j in NN}
-        
-        # edge connecting to self is not allowed
-        NoSelfEdge = {i:p.addConstr(C[i,i] == 0) for i in NN}
-        
-        CantUseNodesInK2 = {(i,j):p.addConstr(C[i,j] == 0) for (i,j) in K}
-        p.setParam('OutputFlag',0)
-        p.optimize()
-        
-        if p.status == GRB.INFEASIBLE:
-            print("fuck")
-            if queue != None:
-                queue.put("Infeasible")
-            #break
-        else:
-            if p.status != GRB.INFEASIBLE:
-                for i in NN:
-                    for j in NN:
-                        if C[i,j].x > 0.9:
-                            print("node "+ str(i) + " to node " + str(j))
-            if queue != None:
-                queue.put("Feasible")
         # =============================================================================
         # =============================================================================
         
