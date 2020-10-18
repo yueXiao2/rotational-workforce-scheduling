@@ -1,61 +1,293 @@
-File testcases/Example63.txt needed 0.05787825584411621 seconds to finish with result Infeasible
-File testcases/Example71.txt needed 2.7149903774261475 seconds to finish with result Feasible
+File testcases/Example63.txt needed 0.0804288387298584 seconds to finish with result Infeasible
+File testcases/Example71.txt needed 2.865010976791382 seconds to finish with result Feasible
 File testcases/Example83.txt didn't complete in time.
-File testcases/Example101.txt needed 0.25473737716674805 seconds to finish with result Infeasible
-File testcases/Example113.txt needed 0.1741175651550293 seconds to finish with result Feasible
+File testcases/Example101.txt needed 0.2578761577606201 seconds to finish with result Infeasible
+File testcases/Example113.txt needed 0.22526907920837402 seconds to finish with result Feasible
 File testcases/Example126.txt didn't complete in time.
-File testcases/Example143.txt needed 0.1844942569732666 seconds to finish with result Infeasible
-File testcases/Example150.txt needed 0.5160596370697021 seconds to finish with result Feasible
-File testcases/Example243.txt needed 0.06612634658813477 seconds to finish with result Feasible
-File testcases/Example251.txt needed 3.786809206008911 seconds to finish with result Infeasible
+File testcases/Example143.txt needed 0.21162009239196777 seconds to finish with result Infeasible
+File testcases/Example150.txt needed 0.5617668628692627 seconds to finish with result Feasible
+File testcases/Example243.txt needed 0.0713346004486084 seconds to finish with result Feasible
+File testcases/Example251.txt needed 4.023163080215454 seconds to finish with result Infeasible
 File testcases/Example263.txt didn't complete in time.
-File testcases/Example281.txt needed 0.22191095352172852 seconds to finish with result Feasible
-File testcases/Example293.txt needed 0.18387913703918457 seconds to finish with result Infeasible
+File testcases/Example281.txt needed 0.2542867660522461 seconds to finish with result Feasible
+File testcases/Example293.txt needed 0.19246125221252441 seconds to finish with result Infeasible
 File testcases/Example306.txt didn't complete in time.
-File testcases/Example323.txt needed 0.18918800354003906 seconds to finish with result Feasible
-File testcases/Example330.txt needed 0.5215907096862793 seconds to finish with result Infeasible
-File testcases/Example394.txt needed 58.675901651382446 seconds to finish with result Feasible
+File testcases/Example323.txt needed 0.222151517868042 seconds to finish with result Feasible
+File testcases/Example330.txt needed 0.5334324836730957 seconds to finish with result Infeasible
+File testcases/Example394.txt didn't complete in time.
 File testcases/Example486.txt didn't complete in time.
-File testcases/Example490.txt needed 0.5060386657714844 seconds to finish with result Infeasible
-File testcases/Example494.txt needed 12.665983200073242 seconds to finish with result Feasible
-File testcases/Example500.txt needed 6.6485161781311035 seconds to finish with result Infeasible
-File testcases/Example501.txt needed 2.262960195541382 seconds to finish with result Infeasible
-File testcases/Example506.txt needed 7.919868230819702 seconds to finish with result Feasible
-File testcases/Example519.txt needed 0.1061248779296875 seconds to finish with result Infeasible
-File testcases/Example605.txt needed 29.42049765586853 seconds to finish with result Feasible
-File testcases/Example623.txt needed 0.15007662773132324 seconds to finish with result Infeasible
-File testcases/Example676.txt needed 0.07586884498596191 seconds to finish with result Feasible
-File testcases/Example677.txt needed 33.356194734573364 seconds to finish with result Feasible
-File testcases/Example745.txt needed 4.290889739990234 seconds to finish with result Feasible
-File testcases/Example779.txt needed 0.16866207122802734 seconds to finish with result Feasible
-File testcases/Example813.txt needed 0.24039483070373535 seconds to finish with result Feasible
+File testcases/Example490.txt needed 0.5662045478820801 seconds to finish with result Infeasible
+File testcases/Example494.txt needed 13.653867721557617 seconds to finish with result Infeasible
+File testcases/Example500.txt needed 6.28882360458374 seconds to finish with result Infeasible
+File testcases/Example501.txt needed 2.147006034851074 seconds to finish with result Feasible
+File testcases/Example506.txt needed 7.609834909439087 seconds to finish with result Infeasible
+File testcases/Example519.txt needed 0.16457653045654297 seconds to finish with result Feasible
+File testcases/Example605.txt needed 29.516825199127197 seconds to finish with result Infeasible
+File testcases/Example623.txt needed 0.1694340705871582 seconds to finish with result Feasible
+File testcases/Example676.txt needed 0.08883261680603027 seconds to finish with result Feasible
+File testcases/Example677.txt needed 35.03628420829773 seconds to finish with result Feasible
+File testcases/Example745.txt needed 4.393198490142822 seconds to finish with result Feasible
+File testcases/Example779.txt needed 0.19385719299316406 seconds to finish with result Feasible
+File testcases/Example813.txt needed 0.22991037368774414 seconds to finish with result Feasible
 File testcases/Example914.txt didn't complete in time.
-File testcases/Example963.txt needed 0.8419427871704102 seconds to finish with result Infeasible
-File testcases/Example1137.txt needed 0.17786645889282227 seconds to finish with result Feasible
-File testcases/Example1150.txt needed 56.955138206481934 seconds to finish with result Feasible
-File testcases/Example1161.txt needed 9.569169521331787 seconds to finish with result Infeasible
-File testcases/Example1163.txt needed 0.1457369327545166 seconds to finish with result Feasible
-File testcases/Example1175.txt needed 0.1603255271911621 seconds to finish with result Feasible
-File testcases/Example1178.txt needed 0.4008655548095703 seconds to finish with result Feasible
-File testcases/Example1239.txt needed 0.16356492042541504 seconds to finish with result Infeasible
-File testcases/Example1246.txt needed 4.321754217147827 seconds to finish with result Feasible
-File testcases/Example1252.txt needed 30.0680730342865 seconds to finish with result Feasible
+File testcases/Example963.txt needed 0.8957912921905518 seconds to finish with result Feasible
+File testcases/Example1137.txt needed 0.18397974967956543 seconds to finish with result Feasible
+File testcases/Example1150.txt needed 59.81165957450867 seconds to finish with result Infeasible
+File testcases/Example1161.txt needed 9.598566055297852 seconds to finish with result Feasible
+File testcases/Example1163.txt needed 0.15268802642822266 seconds to finish with result Feasible
+File testcases/Example1175.txt needed 0.16076183319091797 seconds to finish with result Feasible
+File testcases/Example1178.txt needed 0.3936014175415039 seconds to finish with result Infeasible
+File testcases/Example1239.txt needed 0.1526784896850586 seconds to finish with result Feasible
+File testcases/Example1246.txt needed 4.275567293167114 seconds to finish with result Feasible
+File testcases/Example1252.txt needed 30.515498161315918 seconds to finish with result Feasible
 File testcases/Example1298.txt didn't complete in time.
-File testcases/Example1418.txt needed 0.07370591163635254 seconds to finish with result Feasible
-File testcases/Example1564.txt needed 0.4385716915130615 seconds to finish with result Feasible
-File testcases/Example1585.txt needed 0.15617847442626953 seconds to finish with result Feasible
+File testcases/Example1418.txt needed 0.11014962196350098 seconds to finish with result Feasible
+File testcases/Example1564.txt needed 0.3992161750793457 seconds to finish with result Feasible
+File testcases/Example1585.txt needed 0.15258121490478516 seconds to finish with result Feasible
 File testcases/Example1590.txt didn't complete in time.
-File testcases/Example1691.txt didn't complete in time.
-File testcases/Example1712.txt needed 11.039642095565796 seconds to finish with result Feasible
-File testcases/Example1720.txt needed 0.11034393310546875 seconds to finish with result Feasible
-File testcases/Example1752.txt needed 45.85633087158203 seconds to finish with result Infeasible
-File testcases/Example1828.txt needed 0.10589599609375 seconds to finish with result Infeasible
-File testcases/Example1844.txt needed 0.24101901054382324 seconds to finish with result Feasible
-File testcases/Example1865.txt needed 0.18543148040771484 seconds to finish with result Feasible
-File testcases/Example1887.txt needed 0.07160091400146484 seconds to finish with result Feasible
-File testcases/Example1914.txt needed 0.07854318618774414 seconds to finish with result Infeasible
-File testcases/Example1923.txt needed 0.16761350631713867 seconds to finish with result Infeasible
-File testcases/Example1924.txt needed 0.17361092567443848 seconds to finish with result Feasible
-File testcases/Example1945.txt needed 0.06436657905578613 seconds to finish with result Feasible
-File testcases/Example1949.txt needed 4.524144172668457 seconds to finish with result Infeasible
-File testcases/Example1960.txt needed 13.070952892303467 seconds to finish with result Feasible
+complete in time.
+File testcases/Example146.txt needed 3.503406524658203 seconds to finish with result Infeasible
+File testcases/Example151.txt didn't complete in time.
+File testcases/Example160.txt needed 0.2283778190612793 seconds to finish with result Infeasible
+File testcases/Example161.txt didn't complete in time.
+File testcases/Example162.txt needed 0.6233012676239014 seconds to finish with result Infeasible
+File testcases/Example164.txt didn't complete in time.
+File testcases/Example165.txt needed 0.30795860290527344 seconds to finish with result Infeasible
+File testcases/Example166.txt needed 14.833688735961914 seconds to finish with result Feasible
+File testcases/Example169.txt needed 0.3304305076599121 seconds to finish with result Feasible
+File testcases/Example170.txt needed 0.22962021827697754 seconds to finish with result Feasible
+File testcases/Example171.txt needed 9.923431396484375 seconds to finish with result Feasible
+File testcases/Example179.txt needed 1.0550901889801025 seconds to finish with result Feasible
+File testcases/Example180.txt needed 0.22496843338012695 seconds to finish with result Feasible
+File testcases/Example182.txt didn't complete in time.
+File testcases/Example188.txt didn't complete in time.
+File testcases/Example190.txt needed 7.894783973693848 seconds to finish with result Infeasible
+File testcases/Example193.txt needed 22.36447787284851 seconds to finish with result Feasible
+File testcases/Example199.txt didn't complete in time.
+File testcases/Example201.txt needed 3.2452564239501953 seconds to finish with result Infeasible
+File testcases/Example207.txt needed 3.347337245941162 seconds to finish with result Feasible
+File testcases/Example208.txt didn't complete in time.
+File testcases/Example209.txt needed 0.45430922508239746 seconds to finish with result Infeasible
+File testcases/Example214.txt needed 25.350496530532837 seconds to finish with result Feasible
+File testcases/Example216.txt needed 0.3484914302825928 seconds to finish with result Feasible
+File testcases/Example217.txt needed 1.064765453338623 seconds to finish with result Infeasible
+File testcases/Example220.txt needed 2.309607744216919 seconds to finish with result Feasible
+File testcases/Example221.txt didn't complete in time.
+File testcases/Example224.txt didn't complete in time.
+File testcases/Example227.txt didn't complete in time.
+File testcases/Example229.txt didn't complete in time.
+File testcases/Example231.txt needed 4.424926280975342 seconds to finish with result Infeasible
+File testcases/Example232.txt didn't complete in time.
+File testcases/Example234.txt needed 2.110523223876953 seconds to finish with result Feasible
+File testcases/Example239.txt didn't complete in time.
+File testcases/Example240.txt needed 4.685506343841553 seconds to finish with result Feasible
+File testcases/Example244.txt needed 1.2569103240966797 seconds to finish with result Infeasible
+File testcases/Example248.txt needed 0.35832715034484863 seconds to finish with result Feasible
+File testcases/Example253.txt didn't complete in time.
+File testcases/Example266.txt needed 26.888624668121338 seconds to finish with result Feasible
+File testcases/Example267.txt didn't complete in time.
+File testcases/Example269.txt needed 5.082545757293701 seconds to finish with result Feasible
+File testcases/Example273.txt didn't complete in time.
+File testcases/Example274.txt needed 0.3934907913208008 seconds to finish with result Feasible
+File testcases/Example275.txt needed 36.10114526748657 seconds to finish with result Infeasible
+File testcases/Example280.txt didn't complete in time.
+File testcases/Example285.txt needed 3.6702888011932373 seconds to finish with result Feasible
+File testcases/Example287.txt didn't complete in time.
+File testcases/Example288.txt needed 2.3175745010375977 seconds to finish with result Feasible
+File testcases/Example289.txt didn't complete in time.
+File testcases/Example290.txt needed 7.838865041732788 seconds to finish with result Feasible
+File testcases/Example291.txt didn't complete in time.
+File testcases/Example294.txt needed 10.013200998306274 seconds to finish with result Feasible
+File testcases/Example296.txt needed 5.099733829498291 seconds to finish with result Infeasible
+File testcases/Example297.txt needed 1.094801425933838 seconds to finish with result Feasible
+File testcases/Example300.txt needed 1.575279712677002 seconds to finish with result Feasible
+File testcases/Example301.txt didn't complete in time.
+File testcases/Example305.txt didn't complete in time.
+File testcases/Example308.txt needed 13.636206865310669 seconds to finish with result Infeasible
+File testcases/Example309.txt needed 2.3881614208221436 seconds to finish with result Infeasible
+File testcases/Example310.txt didn't complete in time.
+File testcases/Example312.txt needed 2.677919864654541 seconds to finish with result Feasible
+File testcases/Example313.txt didn't complete in time.
+File testcases/Example314.txt needed 5.0655517578125 seconds to finish with result Feasible
+File testcases/Example315.txt needed 10.858017206192017 seconds to finish with result Infeasible
+File testcases/Example319.txt didn't complete in time.
+File testcases/Example326.txt needed 3.435549259185791 seconds to finish with result Feasible
+File testcases/Example331.txt didn't complete in time.
+File testcases/Example340.txt needed 0.2346346378326416 seconds to finish with result Feasible
+File testcases/Example341.txt didn't complete in time.
+File testcases/Example342.txt needed 0.6421585083007812 seconds to finish with result Feasible
+File testcases/Example344.txt didn't complete in time.
+File testcases/Example345.txt needed 0.2922554016113281 seconds to finish with result Feasible
+File testcases/Example346.txt needed 15.02623176574707 seconds to finish with result Infeasible
+File testcases/Example349.txt needed 0.32230281829833984 seconds to finish with result Feasible
+File testcases/Example350.txt needed 0.21954965591430664 seconds to finish with result Feasible
+File testcases/Example351.txt needed 8.915249347686768 seconds to finish with result Feasible
+File testcases/Example359.txt needed 1.0122616291046143 seconds to finish with result Feasible
+File testcases/Example360.txt needed 0.2283473014831543 seconds to finish with result Feasible
+File testcases/Example362.txt didn't complete in time.
+File testcases/Example368.txt didn't complete in time.
+File testcases/Example370.txt needed 8.270165920257568 seconds to finish with result Infeasible
+File testcases/Example373.txt needed 24.278257846832275 seconds to finish with result Infeasible
+File testcases/Example379.txt didn't complete in time.
+File testcases/Example382.txt didn't complete in time.
+File testcases/Example385.txt didn't complete in time.
+File testcases/Example386.txt needed 15.414329051971436 seconds to finish with result Infeasible
+File testcases/Example389.txt needed 0.29076457023620605 seconds to finish with result Infeasible
+File testcases/Example390.txt didn't complete in time.
+File testcases/Example391.txt needed 0.42822837829589844 seconds to finish with result Infeasible
+File testcases/Example395.txt needed 4.884539842605591 seconds to finish with result Feasible
+File testcases/Example398.txt didn't complete in time.
+File testcases/Example400.txt didn't complete in time.
+File testcases/Example401.txt needed 3.7085440158843994 seconds to finish with result Feasible
+File testcases/Example402.txt didn't complete in time.
+File testcases/Example403.txt didn't complete in time.
+File testcases/Example406.txt needed 0.6192026138305664 seconds to finish with result Infeasible
+File testcases/Example407.txt needed 12.460698127746582 seconds to finish with result Feasible
+File testcases/Example408.txt needed 22.82663893699646 seconds to finish with result Infeasible
+File testcases/Example411.txt needed 13.107528686523438 seconds to finish with result Infeasible
+File testcases/Example412.txt needed 0.8879263401031494 seconds to finish with result Feasible
+File testcases/Example415.txt didn't complete in time.
+File testcases/Example423.txt needed 2.6737654209136963 seconds to finish with result Feasible
+File testcases/Example430.txt didn't complete in time.
+File testcases/Example433.txt needed 33.13132572174072 seconds to finish with result Feasible
+File testcases/Example434.txt didn't complete in time.
+File testcases/Example435.txt needed 1.0982377529144287 seconds to finish with result Infeasible
+File testcases/Example436.txt needed 56.606706619262695 seconds to finish with result Feasible
+File testcases/Example438.txt didn't complete in time.
+File testcases/Example440.txt didn't complete in time.
+File testcases/Example444.txt didn't complete in time.
+File testcases/Example446.txt needed 2.0617966651916504 seconds to finish with result Feasible
+File testcases/Example451.txt needed 0.44881582260131836 seconds to finish with result Feasible
+File testcases/Example453.txt didn't complete in time.
+File testcases/Example460.txt didn't complete in time.
+File testcases/Example463.txt didn't complete in time.
+File testcases/Example464.txt needed 0.4879927635192871 seconds to finish with result Infeasible
+File testcases/Example465.txt needed 29.438310384750366 seconds to finish with result Feasible
+File testcases/Example466.txt didn't complete in time.
+File testcases/Example469.txt needed 0.21190214157104492 seconds to finish with result Feasible
+File testcases/Example473.txt didn't complete in time.
+File testcases/Example474.txt needed 1.0931580066680908 seconds to finish with result Infeasible
+File testcases/Example477.txt didn't complete in time.
+File testcases/Example479.txt needed 1.7217583656311035 seconds to finish with result Feasible
+File testcases/Example480.txt needed 3.818445920944214 seconds to finish with result Feasible
+File testcases/Example482.txt didn't complete in time.
+File testcases/Example484.txt needed 1.7213363647460938 seconds to finish with result Infeasible
+File testcases/Example485.txt didn't complete in time.
+File testcases/Example487.txt didn't complete in time.
+File testcases/Example493.txt didn't complete in time.
+File testcases/Example495.txt needed 1.3463642597198486 seconds to finish with result Infeasible
+File testcases/Example497.txt needed 0.25757479667663574 seconds to finish with result Feasible
+File testcases/Example498.txt needed 1.8661210536956787 seconds to finish with result Feasible
+File testcases/Example502.txt didn't complete in time.
+File testcases/Example504.txt needed 8.072828769683838 seconds to finish with result Feasible
+File testcases/Example505.txt didn't complete in time.
+File testcases/Example508.txt needed 4.944310426712036 seconds to finish with result Infeasible
+File testcases/Example515.txt needed 16.72836422920227 seconds to finish with result Infeasible
+File testcases/Example516.txt didn't complete in time.
+File testcases/Example517.txt needed 0.8428235054016113 seconds to finish with result Feasible
+File testcases/Example524.txt needed 1.701606035232544 seconds to finish with result Feasible
+File testcases/Example525.txt didn't complete in time.
+File testcases/Example527.txt didn't complete in time.
+File testcases/Example528.txt needed 16.127350091934204 seconds to finish with result Infeasible
+File testcases/Example530.txt needed 2.747097969055176 seconds to finish with result Feasible
+File testcases/Example539.txt needed 0.5639340877532959 seconds to finish with result Feasible
+File testcases/Example541.txt didn't complete in time.
+File testcases/Example542.txt didn't complete in time.
+File testcases/Example548.txt didn't complete in time.
+File testcases/Example551.txt needed 8.53667426109314 seconds to finish with result Feasible
+File testcases/Example554.txt didn't complete in time.
+File testcases/Example555.txt needed 0.9782454967498779 seconds to finish with result Infeasible
+File testcases/Example556.txt needed 29.15058445930481 seconds to finish with result Feasible
+File testcases/Example563.txt needed 0.8547289371490479 seconds to finish with result Feasible
+File testcases/Example571.txt needed 30.10451102256775 seconds to finish with result Feasible
+File testcases/Example577.txt didn't complete in time.
+File testcases/Example578.txt didn't complete in time.
+File testcases/Example586.txt didn't complete in time.
+File testcases/Example591.txt needed 0.641700029373169 seconds to finish with result Feasible
+File testcases/Example595.txt didn't complete in time.
+File testcases/Example597.txt didn't complete in time.
+File testcases/Example599.txt didn't complete in time.
+File testcases/Example600.txt needed 0.37365078926086426 seconds to finish with result Feasible
+File testcases/Example603.txt didn't complete in time.
+File testcases/Example606.txt didn't complete in time.
+File testcases/Example609.txt needed 0.3092379570007324 seconds to finish with result Infeasible
+File testcases/Example611.txt needed 5.790899991989136 seconds to finish with result Infeasible
+File testcases/Example614.txt didn't complete in time.
+File testcases/Example617.txt needed 0.22135472297668457 seconds to finish with result Infeasible
+File testcases/Example619.txt needed 22.902193069458008 seconds to finish with result Infeasible
+File testcases/Example621.txt needed 37.174158573150635 seconds to finish with result Infeasible
+File testcases/Example622.txt didn't complete in time.
+File testcases/Example627.txt didn't complete in time.
+File testcases/Example628.txt needed 1.9197497367858887 seconds to finish with result Infeasible
+File testcases/Example631.txt needed 13.342671155929565 seconds to finish with result Feasible
+File testcases/Example633.txt needed 25.531548500061035 seconds to finish with result Feasible
+File testcases/Example634.txt needed 28.936611652374268 seconds to finish with result Infeasible
+File testcases/Example635.txt needed 32.41505765914917 seconds to finish with result Infeasible
+File testcases/Example636.txt needed 7.056376218795776 seconds to finish with result Feasible
+File testcases/Example640.txt didn't complete in time.
+File testcases/Example645.txt needed 40.428414821624756 seconds to finish with result Feasible
+File testcases/Example648.txt needed 4.666327714920044 seconds to finish with result Infeasible
+File testcases/Example649.txt didn't complete in time.
+File testcases/Example651.txt didn't complete in time.
+File testcases/Example652.txt didn't complete in time.
+File testcases/Example659.txt needed 32.68907022476196 seconds to finish with result Feasible
+File testcases/Example661.txt needed 3.0335919857025146 seconds to finish with result Feasible
+File testcases/Example662.txt needed 4.05693244934082 seconds to finish with result Feasible
+File testcases/Example668.txt needed 1.9842045307159424 seconds to finish with result Feasible
+File testcases/Example671.txt didn't complete in time.
+File testcases/Example672.txt needed 23.523253202438354 seconds to finish with result Feasible
+File testcases/Example681.txt didn't complete in time.
+File testcases/Example682.txt needed 44.47560501098633 seconds to finish with result Infeasible
+File testcases/Example683.txt didn't complete in time.
+File testcases/Example686.txt needed 0.3598499298095703 seconds to finish with result Infeasible
+File testcases/Example690.txt didn't complete in time.
+File testcases/Example692.txt didn't complete in time.
+File testcases/Example699.txt didn't complete in time.
+File testcases/Example701.txt needed 0.44317054748535156 seconds to finish with result Feasible
+File testcases/Example703.txt needed 4.360835075378418 seconds to finish with result Infeasible
+File testcases/Example707.txt didn't complete in time.
+File testcases/Example708.txt didn't complete in time.
+File testcases/Example710.txt needed 0.8542075157165527 seconds to finish with result Feasible
+File testcases/Example711.txt didn't complete in time.
+File testcases/Example715.txt needed 2.3814985752105713 seconds to finish with result Feasible
+File testcases/Example716.txt needed 0.8885817527770996 seconds to finish with result Infeasible
+File testcases/Example717.txt needed 0.24446797370910645 seconds to finish with result Infeasible
+File testcases/Example719.txt needed 50.854652404785156 seconds to finish with result Infeasible
+File testcases/Example720.txt didn't complete in time.
+File testcases/Example724.txt needed 21.363423824310303 seconds to finish with result Feasible
+File testcases/Example725.txt didn't complete in time.
+File testcases/Example729.txt needed 29.629919290542603 seconds to finish with result Infeasible
+File testcases/Example732.txt didn't complete in time.
+File testcases/Example733.txt didn't complete in time.
+File testcases/Example734.txt needed 2.9534854888916016 seconds to finish with result Infeasible
+File testcases/Example735.txt needed 3.010779857635498 seconds to finish with result Feasible
+File testcases/Example740.txt didn't complete in time.
+File testcases/Example741.txt needed 0.3542764186859131 seconds to finish with result Feasible
+File testcases/Example744.txt needed 0.38043808937072754 seconds to finish with result Feasible
+File testcases/Example746.txt didn't complete in time.
+File testcases/Example751.txt didn't complete in time.
+File testcases/Example752.txt needed 0.9296143054962158 seconds to finish with result Infeasible
+File testcases/Example754.txt needed 1.2809982299804688 seconds to finish with result Feasible
+File testcases/Example756.txt needed 10.032761335372925 seconds to finish with result Infeasible
+File testcases/Example757.txt needed 28.74183940887451 seconds to finish with result Infeasible
+File testcases/Example758.txt needed 41.394726276397705 seconds to finish with result Feasible
+File testcases/Example763.txt needed 0.39764857292175293 seconds to finish with result Feasible
+File testcases/Example764.txt needed 10.232815265655518 seconds to finish with result Infeasible
+File testcases/Example770.txt needed 23.891174793243408 seconds to finish with result Feasible
+File testcases/Example771.txt needed 30.287347555160522 seconds to finish with result Feasible
+File testcases/Example777.txt didn't complete in time.
+File testcases/Example783.txt didn't complete in time.
+File testcases/Example784.txt needed 0.4646282196044922 seconds to finish with result Feasible
+File testcases/Example786.txt didn't complete in time.
+File testcases/Example787.txt needed 3.366659164428711 seconds to finish with result Feasible
+File testcases/Example790.txt didn't complete in time.
+File testcases/Example792.txt needed 5.795132398605347 seconds to finish with result Feasible
+File testcases/Example796.txt didn't complete in time.
+File testcases/Example797.txt didn't complete in time.
+File testcases/Example801.txt needed 3.4547197818756104 seconds to finish with result Feasible
+File testcases/Example802.txt needed 4.140981674194336 seconds to finish with result Feasible
+File testcases/Example805.txt needed 3.619141101837158 seconds to finish with result Infeasible
+File testcases/Example806.txt didn't complete in time.
+File testcases/Example807.txt needed 29.936638593673706 seconds to finish with result Feasible
+File testcases/Example808.txt didn't complete in time.
+File testcases/Example809.txt needed 0.30107569694519043 seconds to finish with result Feasible
