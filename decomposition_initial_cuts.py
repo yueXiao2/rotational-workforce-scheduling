@@ -133,7 +133,7 @@ def maxAllowance(block, start, G, BW, workDemand, S, B, planningLength):
         maximumCount = X[block,start].x
     return int(round(maximumCount))
 
-def decomp(queue, file):
+def decompCuts(queue, file):
     dataMap = read_data(file)
     print(file)
     
