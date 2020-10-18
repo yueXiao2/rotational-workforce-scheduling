@@ -293,7 +293,7 @@ def decomp(queue, file):
     
     
     SolutionSet = []
-    isFeasible = True
+    isFeasible = [True]
     
     def Callback (model, where):
         if where == GRB.Callback.MIPSOL:
@@ -323,7 +323,7 @@ def decomp(queue, file):
                 print("solution appended. current length: " + str(len(SolutionSet)))
             else:
                 print("ohhhhh cyclic!")
-                isFeasible = False
+                isFeasible[0] = False
                 model.terminate()
                 if queue != None:
                     queue.put("Infeasible")
@@ -468,7 +468,7 @@ def decomp(queue, file):
         if queue != None:
             queue.put("Infeasible")
     else:
-        if (isFeasible == False):
+        if (isFeasible[0] == False):
             print(" no subproblem solutions")
                     #print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
             if queue != None:
