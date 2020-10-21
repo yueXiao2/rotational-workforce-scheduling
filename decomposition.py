@@ -398,13 +398,6 @@ def decomp(queue, file):
                                             for n1 in LongestSub for n2 in LongestSub
                                             if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
             
-    # =============================================================================
-    #         if s.status != GRB.INFEASIBLE:
-    #             for i in NN:
-    #                 for j in NN:
-    #                     if V[i,j].x > 0.9:
-    #                         print("node "+ str(i) + " to node " + str(j))
-    # =============================================================================
             
             s.optimize(CallbackSubCycle)
         

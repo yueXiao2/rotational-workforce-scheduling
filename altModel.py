@@ -287,8 +287,7 @@ X = {(b,d,k) : m.addVar(vtype=GRB.BINARY) for b in B for d in G for k in M[b,d]}
 #Node (b1,d1) is followed by node (b2,d2)
 Y = {(n1,n2) : m.addVar(vtype=GRB.BINARY) for n1 in Nodes for n2 in Nodes}
 
-Z = {n:m.addVar(vtype = GRB.BINARY) for n in Nodes}
-
+print("variables set up")
 #Constraints
 
 #Only use k if k-1 is used
@@ -296,15 +295,16 @@ XIncrement = {(b,d,k):m.addConstr(X[b,d,k-1] >= X[b,d,k]) for b in B for d in G 
 
 
 YAndX = {(n1,n2):m.addConstr(X[n1] + X[n2] >= 2 * Y[n1,n2]) for n1 in Nodes for n2 in Nodes}
-YAndZ = {(n): Z[n] >= Y[n,n2] for n in Nodes for n2 in Nodes}
-YAndZ2 = {(n): Z[n] >= Y[n2,n] for n in Nodes for n2 in Nodes}
+
 
 Employee = m.addConstr(quicksum( additionEmp((n1[0],n1[1]),(n2[0],n2[1]))* Y[n1,n2] for n1 in Nodes for n2 in Nodes) == numEmployee)
 
-#Conservation of flow
-OneEdgeIn = {j:m.addConstr(quicksum(Y[ii,j] for ii in Nodes) == 1 * Z[j]) for j in Nodes}
-OneEdgeOut = {i:m.addConstr(quicksum(Y[i,jj] for jj in Nodes) == 1 * Z[i]) for i in Nodes}
 
+#Conservation of flow
+Conservation = {n:m.addConstr(quicksum(Y[n2,n] for n2 in Nodes) - quicksum(Y[n,n2] for n2 in Nodes) == 0) for n in Nodes}
+#
+OneFlowIn = {n:m.addConstr(quicksum(Y[n,n2] for n2 in Nodes) <= 1) for n in Nodes}
+OneFlowOut = {n:m.addConstr(quicksum(Y[n2,n] for n2 in Nodes) <= 1) for n in Nodes}
 
 #noself edge
 NoSelfEdge = {n:m.addConstr(Y[n,n] == 0) for n in Nodes}
