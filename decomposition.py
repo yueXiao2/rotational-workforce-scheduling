@@ -63,8 +63,17 @@ def additionEmp (n1, n2, B, planningLength):
 
 def cantUseNodes(N, B, planningLength, minD, maxD, F3):
     cantUse = []
+    n1Index = 0
     for n1 in N:
+        n2Index = 0
         for n2 in N:
+            
+            if(n1Index == n2Index):
+                if (n1Index,n2Index) not in cantUse:
+                    cantUse.append((n1Index,n2Index))
+                n2Index+=1
+                continue
+            
             shiftBlock1 = B[n1[0]]
             shiftBlock2 = B[n2[0]]
     
@@ -102,8 +111,8 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
                     if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
                         if (index1,index2) not in cantUse:
                             cantUse.append((index1,index2))
-            
-            
+            n2Index+=1
+        n1Index+=1
     return cantUse
 
 def getLength(b, B):
@@ -343,9 +352,6 @@ def decomp(queue, file):
             #Conservation of flow
             OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN ) == 1) for i in NN}
             OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN ) == 1) for j in NN}
-            
-            # edge connecting to self is not allowed
-            NoSelfEdge = {i:s.addConstr(V[i,i] == 0) for i in NN}
             
             CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
             s.setParam('OutputFlag',0)

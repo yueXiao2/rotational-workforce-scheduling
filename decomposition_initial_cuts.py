@@ -63,8 +63,17 @@ def additionEmp (n1, n2, B, planningLength):
 
 def cantUseNodes(N, B, planningLength, minD, maxD, F3):
     cantUse = []
+    n1Index = 0
     for n1 in N:
+        n2Index = 0
         for n2 in N:
+            
+            if(n1Index == n2Index):
+                if (n1Index,n2Index) not in cantUse:
+                    cantUse.append((n1Index,n2Index))
+                n2Index+=1
+                continue
+            
             shiftBlock1 = B[n1[0]]
             shiftBlock2 = B[n2[0]]
     
@@ -102,8 +111,8 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
                     if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
                         if (index1,index2) not in cantUse:
                             cantUse.append((index1,index2))
-            
-            
+            n2Index+=1
+        n1Index+=1
     return cantUse
 
 def getLength(b, B):
@@ -133,7 +142,7 @@ def maxAllowance(block, start, G, BW, workDemand, S, B, planningLength):
         maximumCount = X[block,start].x
     return int(round(maximumCount))
 
-def decompCuts(queue, file):
+def decomp(queue, file):
     dataMap = read_data(file)
     print(file)
     
@@ -277,13 +286,13 @@ def decompCuts(queue, file):
     #warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
     # the totak day offs >= the number of day off blocks * minimal length of day off block
     #total day offs  = schedule length - total shift days
-    WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b, B) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
+    WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
     
     
     #warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
     # the totak day offs <= the number of day off blocks * maximum length of day off block
     #total day offs  = schedule length - total shift days
-    WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b, B) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
+    WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
     
     #The maximum times that a block b can start on day d
     MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in range(1,maximumAllowance[b,d]+1))) for b in BW for d in G }
@@ -344,9 +353,6 @@ def decompCuts(queue, file):
             OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN ) == 1) for i in NN}
             OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN ) == 1) for j in NN}
             
-            # edge connecting to self is not allowed
-            NoSelfEdge = {i:s.addConstr(V[i,i] == 0) for i in NN}
-            
             CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
             s.setParam('OutputFlag',0)
             s.setParam("LazyConstraints",1)
@@ -362,7 +368,6 @@ def decompCuts(queue, file):
                         if Sub[k] > 0.9:
                             SubSol.append(k)
                     #Idea of improvement : better way to determine the factors of a hamiltonian circle
-
                     # Done is the set of squares already looked at
                     Done = set()
                     SubPaths = []
@@ -399,13 +404,6 @@ def decompCuts(queue, file):
                                             for n1 in LongestSub for n2 in LongestSub
                                             if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
             
-    # =============================================================================
-    #         if s.status != GRB.INFEASIBLE:
-    #             for i in NN:
-    #                 for j in NN:
-    #                     if V[i,j].x > 0.9:
-    #                         print("node "+ str(i) + " to node " + str(j))
-    # =============================================================================
             
             s.optimize(CallbackSubCycle)
         
@@ -423,6 +421,8 @@ def decompCuts(queue, file):
                 model.cbLazy(quicksum(Y[b,d,n] for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1) if (b,d,n) not in Ysol) + quicksum(1- Y[b,d,n] for (b,d,n) in Ysol) -1 >= 0)
                 
             else:
+                
+                
                 if s.status != GRB.INFEASIBLE:
                     Path = {}
                     for i in NN:
@@ -475,7 +475,7 @@ def decompCuts(queue, file):
         print("----------------------------------------")
         if queue != None:
             queue.put("feasible")
-
+        
         # =============================================================================
         # =============================================================================
         
