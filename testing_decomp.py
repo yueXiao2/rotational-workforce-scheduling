@@ -63,22 +63,23 @@ def additionEmp (n1, n2, B, planningLength):
 
 def cantUseNodes(N, B, planningLength, minD, maxD, F3):
     cantUse = []
-
-    for n1 in range(len(N)):
-
-        for n2 in range(len(N)):
+    n1Index = 0
+    for n1 in N:
+        n2Index = 0
+        for n2 in N:
             
-            if(n1 == n2):
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
+            if(n1Index == n2Index):
+                if (n1Index,n2Index) not in cantUse:
+                    cantUse.append((n1Index,n2Index))
+                n2Index+=1
                 continue
             
-            shiftBlock1 = B[N[n1][0]]
-            shiftBlock2 = B[N[n1][0]]
+            shiftBlock1 = B[n1[0]]
+            shiftBlock2 = B[n2[0]]
     
             #first day of the block
-            startDay1 = N[n1][1]
-            startDay2 = N[n2][1]
+            startDay1 = n1[1]
+            startDay2 = n2[1]
     
             #length of the shift block
             blockLeng1 = len(shiftBlock1)
@@ -88,6 +89,8 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
             blockEnd1 = (startDay1 + blockLeng1 - 1) % planningLength
             blockEnd2 = (startDay2 + blockLeng2 - 1) % planningLength
             
+            index1 = N.index(n1)
+            index2 = N.index(n2)
             
             # the number of day offs between the last day of block1 and first day of block2
             offwork = startDay2 - blockEnd1 - 1
@@ -99,15 +102,17 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
 
             # check if the offwork lengths satisfy the max and min lengths
             if offwork < minD or offwork > maxD:
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
+                if (n1Index,n2Index) not in cantUse:
+                    cantUse.append((n1Index,n2Index))
             
             # check forbidden sequence of length 3
             if len(F3) > 0 and offwork == 1:
                 for i in F3:
                     if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
-                        if (n1,n2) not in cantUse:
-                            cantUse.append((n1,n2))
+                        if (n1Index,n2Index) not in cantUse:
+                            cantUse.append((n1Index,n2Index))
+            n2Index+=1
+        n1Index+=1
     return cantUse
 
 def getLength(b, B):
