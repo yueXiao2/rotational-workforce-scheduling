@@ -142,7 +142,7 @@ def maxAllowance(block, start, G, BW, workDemand, S, B, planningLength):
         maximumCount = X[block,start].x
     return int(round(maximumCount))
 
-def decomp(queue, file):
+def decompCuts(queue, file):
     dataMap = read_data(file)
     print(file)
     
@@ -286,13 +286,13 @@ def decomp(queue, file):
     #warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
     # the totak day offs >= the number of day off blocks * minimal length of day off block
     #total day offs  = schedule length - total shift days
-    WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
+    WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b,B) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
     
     
     #warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
     # the totak day offs <= the number of day off blocks * maximum length of day off block
     #total day offs  = schedule length - total shift days
-    WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
+    WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b,B) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
     
     #The maximum times that a block b can start on day d
     MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in range(1,maximumAllowance[b,d]+1))) for b in BW for d in G }
@@ -326,9 +326,9 @@ def decomp(queue, file):
                     for n in range(1,maximumAllowance[b,d]+1):
                         if YV[b,d,n] > 0.9:
                             Ysol.append((b,d,n))
-            #Idea of improvement : better way to determine the factors of a hamiltonian circle
-            if set(N) not in SolutionSet:
-                SolutionSet.append(set(N))
+                            
+            if set(Ysol) not in SolutionSet:
+                SolutionSet.append(set(Ysol))
                 print("solution appended. current length: " + str(len(SolutionSet)))
             else:
                 print("ohhhhh cyclic!")

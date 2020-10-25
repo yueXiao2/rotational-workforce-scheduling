@@ -327,8 +327,11 @@ def decomp(queue, file):
                         if YV[b,d,n] > 0.9:
                             Ysol.append((b,d,n))
             #Idea of improvement : better way to determine the factors of a hamiltonian circle
-            if set(N) not in SolutionSet:
-                SolutionSet.append(set(N))
+            
+            
+            
+            if set(Ysol) not in SolutionSet:
+                SolutionSet.append(set(Ysol))
                 print("solution appended. current length: " + str(len(SolutionSet)))
             else:
                 print("ohhhhh cyclic!")

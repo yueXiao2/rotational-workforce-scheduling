@@ -186,80 +186,64 @@ def minNumBlocks():
 minBlocks = minNumBlocks()
 maxBlocks = maxNumBlocks()
 
-def cantUseNodes(N,k):
-    cantUse = []
-    for n1 in N:
-        for n2 in N:
+def canUseNodes(n1,n2,k):
             
-            if k == 0 and n1 != ('start'):
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
-                continue
-            
-            if k == maxBlocks+1 and n2 != ('sink'):
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
-                continue
-            
-            
-            if n1 == ('start'):
-                if n2 == ('sink'):
-                    if (n1,n2) not in cantUse:
-                        cantUse.append((n1,n2))
-                
-                if k > 0:
-                    if (n1,n2) not in cantUse:
-                        cantUse.append((n1,n2))
-                continue
-            
-            if n1 == ('sink'):
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
-                continue
-            
-            if n2 == ('sink'):
-                if k == 0:
-                    if (n1,n2) not in cantUse:
-                        cantUse.append((n1,n2))
-                continue
-            
-            if n2 == ('start'):
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
-                continue
-            
-            
-            shiftBlock1 = n1[0]
-            shiftBlock2 = n2[0]
-            
-            dayOffIndex1 = shiftBlock1.index(3)
-
-            
-            #first day of the block
-            startDay1 = n1[1]
-            startDay2 = n2[1]
+    if k == 0 and n1 != ('start'):
+        return False
     
-            #length of the shift block
-            blockLeng1 = len(n1)
-            
-            numDayOffs1 = blockLeng1 - dayOffIndex1
+    if k == maxBlocks+1 and n2 != ('sink'):
+        return False
     
-            #last day of the block
-            blockEnd1 = startDay1 + blockLeng1 - 1 % planningLength
-            
-            if  startDay2 != (blockEnd1 + 1 % planningLength):
-                if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))
-            
-            # check forbidden sequence of length 3
-            if len(F3) > 0 and numDayOffs1 == 1:
-                for i in F3:
-                    if shiftBlock1[dayOffIndex1 - 1] == i[0] and shiftBlock2[0] == i[1]:
-                        if (n1,n2) not in cantUse:
-                            cantUse.append((n1,n2))
-    return cantUse
+    
+    if n1 == ('start'):
+        if n2 == ('sink'):
+            return False
         
+        if k > 0:
+            return False
+        
+        return True
+    
+    if n1 == ('sink'):
+        return False
+    
+    if n2 == ('sink'):
+        if k == 0:
+            return False
+        return True
+    
+    if n2 == ('start'):
+        return False
+    
 
+    shiftBlock1 = n1[0]
+    shiftBlock2 = n2[0]
+
+    dayOffIndex1 = shiftBlock1.index(3)
+
+    
+    #first day of the block
+    startDay1 = n1[1]
+    startDay2 = n2[1]
+
+    #length of the shift block
+    blockLeng1 = len(n1)
+    
+    numDayOffs1 = blockLeng1 - dayOffIndex1
+
+    #last day of the block
+    blockEnd1 = startDay1 + blockLeng1 - 1 % planningLength
+    
+    if  startDay2 != (blockEnd1 + 1 % planningLength):
+        return False
+    
+    # check forbidden sequence of length 3
+    if len(F3) > 0 and numDayOffs1 == 1:
+        for i in F3:
+            if shiftBlock1[dayOffIndex1 - 1] == i[0] and shiftBlock2[0] == i[1]:
+                return False
+
+    return True
 
 Nodes = []
 
@@ -275,14 +259,9 @@ for b in B:
 
 Nodes.append(("start"))
 Nodes.append(("sink"))
-print("before K")
 
-K = {}
-K[0] = cantUseNodes(Nodes,0)
-regular = cantUseNodes(Nodes,1)
-for n in Num:
-    if n > 0:
-        K[n] = regular
+print(len(Nodes))
+print("before K")
 
 m = Model("Alt Model")
 print("after K")
@@ -290,7 +269,7 @@ print("after K")
 
 #Node (b1,d1) is followed by node (b2,d2) at the kth block
 Y = {(n1,n2,n) : m.addVar(vtype=GRB.BINARY) for n1 in Nodes for n2 in Nodes for n in Num 
-     if (n1,n2) not in K[n]}
+     if canUseNodes(n1,n2,n) == True}
 
 print("variables set up")
 #Constraints
@@ -302,11 +281,11 @@ OnlyOneEnd = m.addConstr(quicksum(Y[n1,n2,k] for (n1,n2,k) in Y if n2 == ('sink'
 
 #Conservation of flow
 Conservation = {(n1,k):m.addConstr(quicksum(Y[n2,n1,k] for (n2,nn,kk) in Y if nn == n1 and kk == k) - quicksum(Y[n1,n2,k+1] for (nn,n2,kk) in Y if nn == n1 and kk == k + 1) == 0) 
-for (n1,n,k) in Y if k > 0 and k < maxBlocks+1}
+for n1 in Nodes for k in Num if k > 0 and k < maxBlocks+1 and n1 in Y}
 #
-FlowIn = {(n1,k):m.addConstr(quicksum(Y[n2,n1,k] for (n2,nn,kk) in Y if nn == n1 and k == kk) <= 1) for (n,n1,k) in Y}
+FlowIn = {(n1,k):m.addConstr(quicksum(Y[n2,n1,k] for (n2,nn,kk) in Y if nn == n1 and k == kk) <= 1) for n1 in Nodes for k in Num}
 
-FlowOut = {(n1,k):m.addConstr(quicksum(Y[n1,n2,k] for (nn,n2,kk) in Y if nn == n1 and k == kk) <= 1) for (n1,n,k) in Y}
+FlowOut = {(n1,k):m.addConstr(quicksum(Y[n1,n2,k] for (nn,n2,kk) in Y if nn == n1 and k == kk) <= 1) for n1 in Nodes for k in Num}
 
 ExactScheduleLength = m.addConstr(quicksum(Y[n1,n2,k] * len(n1) for (n1,n2,k) in Y if n1 != ("start")) == schedulingLength)
 
@@ -330,9 +309,9 @@ def callback(model, where):
             if n[0] == lastNode:
                LV = n
                
-        FNodes = cantUseNodes(Nodes,1)
+        canConnect = canUseNodes(lastNode,firstNode)
        
-        if (lastNode,firstNode) in FNodes:
+        if canConnect == False:
            
            for k in Num:
                if k > 0:
