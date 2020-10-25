@@ -3,7 +3,7 @@ from fileReader import *
 import time
 
 file = "testcases/Example"
-num = 2000
+num = 1
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -254,6 +254,8 @@ OneY = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in Num) <= 1) for (b,d) in X}
 print("last constraint  ")
 ExactLength = m.addConstr(quicksum(X[b,d] * len(b) for (b,d) in X) == schedulingLength)
 
+AtLeastOneFollowUp = {(b,d):m.addConstr( quicksum(X[bb,dd] for bb in B for dd in G if dd == (len(b)+d)%planningLength)>= X[b,d]) for b in B for d in G}
+
 #CoverageDays = {d: m.addConstr(quicksum(X[b,dd] for (b,dd) in DayCoverage(d)) == numEmployee) for d in G}
 
 
@@ -373,9 +375,8 @@ def CallBack(model, where):
             if s.status != GRB.INFEASIBLE:
                 Path = {}
                 for (i,j) in V:
-                    print(i,i,V[i,j].x)
                     if V[i,j].x > 0.9:
-                        print("node "+ str(i) + " to node " + str(j))
+                        print("node "+ str(i) +":" + str(N[i])+ " to node " + str(j)+":"+str(N[j]))
                         Path[i] = j
                 keys = Path.keys()
                 

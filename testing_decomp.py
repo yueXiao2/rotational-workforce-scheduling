@@ -63,23 +63,38 @@ def additionEmp (n1, n2, B, planningLength):
 
 def cantUseNodes(N, B, planningLength, minD, maxD, F3):
     cantUse = []
-    n1Index = 0
-    for n1 in N:
-        n2Index = 0
-        for n2 in N:
+    
+    startIndex = len(N) - 2
+    sinkIndex = len(N) - 1
+    
+    cantUse.append((sinkIndex,startIndex))
+    cantUse.append((sinkIndex,sinkIndex))
+    cantUse.append((startIndex,sinkIndex))
+    cantUse.append((startIndex,startIndex))  
+    
+    for n1 in range(startIndex):
+        
+        if (n1,startIndex) not in cantUse:
+            cantUse.append((n1,startIndex))
             
-            if(n1Index == n2Index):
-                if (n1Index,n2Index) not in cantUse:
-                    cantUse.append((n1Index,n2Index))
-                n2Index+=1
+        if (sinkIndex,n1) not in cantUse:
+            cantUse.append((sinkIndex,n1)) 
+
+        
+        
+        for n2 in range(startIndex):
+            
+            if(n1 == n2):
+                if (n1,n2) not in cantUse:
+                    cantUse.append((n1,n2))
                 continue
             
-            shiftBlock1 = B[n1[0]]
-            shiftBlock2 = B[n2[0]]
+            shiftBlock1 = B[N[n1][0]]
+            shiftBlock2 = B[N[n2][0]]
     
             #first day of the block
-            startDay1 = n1[1]
-            startDay2 = n2[1]
+            startDay1 = N[n1][1]
+            startDay2 = N[n2][1]
     
             #length of the shift block
             blockLeng1 = len(shiftBlock1)
@@ -88,9 +103,7 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
             #last day of the block
             blockEnd1 = (startDay1 + blockLeng1 - 1) % planningLength
             blockEnd2 = (startDay2 + blockLeng2 - 1) % planningLength
-            
-            index1 = N.index(n1)
-            index2 = N.index(n2)
+
             
             # the number of day offs between the last day of block1 and first day of block2
             offwork = startDay2 - blockEnd1 - 1
@@ -102,17 +115,15 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
 
             # check if the offwork lengths satisfy the max and min lengths
             if offwork < minD or offwork > maxD:
-                if (n1Index,n2Index) not in cantUse:
-                    cantUse.append((n1Index,n2Index))
+                if (n1,n2) not in cantUse:
+                    cantUse.append((n1,n2))
             
             # check forbidden sequence of length 3
             if len(F3) > 0 and offwork == 1:
                 for i in F3:
                     if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
-                        if (n1Index,n2Index) not in cantUse:
-                            cantUse.append((n1Index,n2Index))
-            n2Index+=1
-        n1Index+=1
+                        if (n1,n2) not in cantUse:
+                            cantUse.append((n1,n2))
     return cantUse
 
 def getLength(b, B):
@@ -318,6 +329,8 @@ def decomp(queue, file):
                             N.append((b,d))
                         #print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
             
+            N.append("start")
+            N.append("sink")
             
             Ysol = []
             YV = {k: v for (k,v) in zip(Y.keys(), model.cbGetSolution(list(Y.values())))}
@@ -341,7 +354,8 @@ def decomp(queue, file):
                     queue.put("Infeasible")
                 return
             
-            
+            startIndex = len(N) - 2
+            sinkIndex = len(N) - 1
             NN = range(len(N))
             K = cantUseNodes(N, B, planningLength, minD, maxD, F3)
             s = Model("subproblem")
@@ -350,7 +364,7 @@ def decomp(queue, file):
             V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
             
             # the total additional employees needed will equal to the total number of employees
-            EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j], B, planningLength)*V[i,j] for i in NN for j in NN) == numEmployee)
+            EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j], B, planningLength)*V[i,j] for i in NN for j in NN if i < startIndex and j < startIndex) == numEmployee)
             
             #Conservation of flow
             OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN ) == 1) for i in NN}
@@ -361,64 +375,31 @@ def decomp(queue, file):
             s.setParam("LazyConstraints",1)
             
             
-            def CallbackSubCycle (model, where):
+            def CallbackSub (model, where):
                 if where == GRB.Callback.MIPSOL:
                     print("begining the subcycle elimination!")
                     
-                    SubSol = []
-                    Sub = {k: v for (k,v) in zip(V.keys(), model.cbGetSolution(list(V.values())))}
-                    for k in Sub:
-                        if Sub[k] > 0.9:
-                            SubSol.append(k)
-                    #Idea of improvement : better way to determine the factors of a hamiltonian circle
-                    # Done is the set of squares already looked at
-                    Done = set()
-                    SubPaths = []
-                    for s in SubSol:
-                        
-                        if s[0] not in Done:
-                            # Find the path that starts at this square and store it in Path
-                            Path = set()
-                            currentNode = s[0]
-                            
-                            while currentNode not in Path:
-                                
-                                for s2 in SubSol:
-                                    (f2,t2) = s2
-                                    if s2[0] == currentNode:
-                                        Path.add(currentNode)
-                                        currentNode = s2[1]
-                                
-                            
-                            if len(Path) < len(SubSol):
-                                SubPaths.append(Path)
-                            Done |= Path
+                    SubSol = {k: v for (k,v) in zip(V.keys(), model.cbGetSolution(list(V.values()))) if v > 0.9}
                     
-                    if len(SubPaths) > 0:
-                        LongestSubCycleLength = 0
-                        LongestSub = set()
+                    firstNode = 0
+                    for k in SubSol:
+                        if k[0] == startIndex:
+                            firstNode = k[1]
                         
-                        for i in SubPaths:
-                            if len(i) > LongestSubCycleLength:
-                                LongestSub = i
-                                LongestSubCycleLength = len(i)
-                        
-                        model.cbLazy(quicksum(V[n1,n2] 
-                                            for n1 in LongestSub for n2 in LongestSub
-                                            if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
+                        if k[0] == sinkIndex:
+                            lastNode = k[1]
+                    
+                    if (lastNode,firstNode) in K:
+                        model.cbLazy(V[startIndex,firstNode] + V[sinkIndex, lastNode] <= 1)
+
+                    
+                    
             
             
-            s.optimize(CallbackSubCycle)
+            s.optimize(CallbackSub)
         
             if s.status == GRB.INFEASIBLE:
-                
-                valueX = {}
-                infeasible = []
-                for d in G:
-                    for b in BW:
-                        if XV[b,d] > 0.9:
-                            infeasible.append((b,d))
-                            valueX[(b,d)] = XV[b,d]
+
     
     
                 model.cbLazy(quicksum(Y[b,d,n] for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1) if (b,d,n) not in Ysol) + quicksum(1- Y[b,d,n] for (b,d,n) in Ysol) -1 >= 0)
