@@ -130,16 +130,10 @@ def BreakBlockGen():
 
 O = BreakBlockGen()
 
-B = []
-for w in W:
-    for o in O:
-        b = w + o
-        if b not in B:
-            B.append(b)
+B = W
         
 
 print("feasible blocks found")
-print(len(W))
 print(len(B))
 
 #Computes the converage of a shift block b starting on day d
@@ -202,12 +196,31 @@ def maxNumBlocks():
 
 def cantUseNodes(N):
     cantUse = []
-    for n1 in range(len(N)):
-        for n2 in range(len(N)):
+    length = len(N)
+    
+    sinkNodeIndex = length - 1
+    startNodeIndex = length - 2
+    
+
+    cantUse.append((sinkNodeIndex,startNodeIndex))
+    cantUse.append((sinkNodeIndex,sinkNodeIndex))
+    cantUse.append((startNodeIndex,sinkNodeIndex))
+    cantUse.append((startNodeIndex,startNodeIndex))
+    
+    for n1 in range(startNodeIndex):
+        
+        if (n1,startNodeIndex) not in cantUse:
+            cantUse.append((n1,startNodeIndex))
+            
+        if (sinkNodeIndex,n1) not in cantUse:
+            cantUse.append((sinkNodeIndex,n1)) 
+        
+        for n2 in range(startNodeIndex):
+            
             
             if n1 == n2:
                 if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))                
+                    cantUse.append((n1,n2))     
                 
             
             
@@ -219,23 +232,32 @@ def cantUseNodes(N):
             
             startDay1 = N[n1][1]
             startDay2 = N[n2][1]
+    
+            #last day of the block
+            blockEnd1 = (startDay1 + blockLeng1 - 1) % planningLength
+            blockEnd2 = (startDay2 + blockLeng2 - 1) % planningLength
+            # the number of day offs between the last day of block1 and first day of block2
+            offwork = startDay2 - blockEnd1 - 1
             
-            dayOffIndex = shiftBlock1.index(3)
-            
-            EndDay1 = (startDay1 + blockLength1 - 1) % planningLength
-            
-            if startDay2 != (EndDay1 + 1) % planningLength:
+            # if the second block is worked by another employee, the offwork interval
+            # goes over to the next week
+            if blockEnd1 >= startDay2:
+                offwork += 7
+
+            # check if the offwork lengths satisfy the max and min lengths
+            if offwork < minD or offwork > maxD:
                 if (n1,n2) not in cantUse:
                     cantUse.append((n1,n2))
             
-            numDayOffs = blockLength1 - dayOffIndex
-            
-            if len(F3) > 0 and numDayOffs == 1:
+            # check forbidden sequence of length 3
+            if len(F3) > 0 and offwork == 1:
                 for i in F3:
-                    if shiftBlock1[dayOffIndex - 1] == i[0] and shiftBlock2[0] == i[1]:
-                        if (n1,n2) not in cantUse:
-                            cantUse.append((n1,n2))
-    return cantUse   
+                    if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
+                        if (index1,index2) not in cantUse:
+                            cantUse.append((index1,index2))
+            n2Index+=1
+        n1Index+=1
+    return cantUse
 
 Num = range(1,maxNumBlocks()+1)
 print("master problem")

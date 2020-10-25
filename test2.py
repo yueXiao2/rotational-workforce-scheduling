@@ -1,8 +1,9 @@
 from gurobipy import *
 from fileReader import *
+import time
 
 file = "testcases/Example"
-num = 15
+num = 2000
 
 dataMap = read_data(file+str(num)+".txt")
 
@@ -47,7 +48,7 @@ F2 = dataMap['notAllowedShiftSequences2']
 # e.g. ['N','M','A']
 F3 = dataMap['notAllowedShiftSequences3']
 
-B = []
+W = []
 
 DW = range(maxWork)
 
@@ -96,10 +97,10 @@ while L <= maxWork:
     maxLengthShift = {s:m.addConstr(quicksum(X[s,d] for d in DW) <= maxShift[s]) for s in S}
     
     #Finding multiple solutions
-    if len(B) > 0:
+    if len(W) > 0:
         
         # no-good cut/ rubbish cut: cuts off the discovered solutions in the set B
-        newSolution = {b:m.addConstr(quicksum(X[s,d] for s in S for d in range(len(b)) if s != b[d]) + quicksum(1 - X[b[d],d] for d in range(len(b))) >= 1) for b in B if len(b) == L}
+        newSolution = {b:m.addConstr(quicksum(X[s,d] for s in S for d in range(len(b)) if s != b[d]) + quicksum(1 - X[b[d],d] for d in range(len(b))) >= 1) for b in W if len(b) == L}
     
     m.optimize()
     
@@ -111,12 +112,35 @@ while L <= maxWork:
                     b.append(s)
         
         b = tuple(b)
-        B.append(b)
+        W.append(b)
 
     else:
         L = L + 1
-                
+
+
+#generate work off blocks
+def BreakBlockGen():
+    O = []
+    for i in range(minD,maxD+1):
+        o = []
+        for j in range(i):
+            o.append(3)
+        O.append(tuple(o))
+    return O
+
+O = BreakBlockGen()
+
+B = []
+for w in W:
+    for o in O:
+        b = w + o
+        if b not in B:
+            B.append(b)
+        
+
 print("feasible blocks found")
+print(len(W))
+print(len(B))
 
 #Computes the converage of a shift block b starting on day d
 #return: list of shifts s in day g that are covered
@@ -125,6 +149,10 @@ def Coverage(b,d):
     coverageList = []
     
     for i in b:
+        
+        if i == 3:
+            break
+        
         tupleList = tuple([i,currentDay])
         coverageList.append(tupleList)
         currentDay = (currentDay + 1)%planningLength
@@ -136,312 +164,233 @@ def Coverage(b,d):
 def C(s,d):
     CList = []
     for g in G:
-        for b in range(len(B)):
-            if (s,d) in Coverage(B[b],g):
+        for b in B:
+            if (s,d) in Coverage(b,g):
                 CList.append(tuple([b,g]))
     return CList
 
+def DayCoverage(d):
+    
+    day = d % planningLength
+    
+    coverage = []
+    for b in B:
+        for g in G:
+            blockLength = len(b)
+            
+            startDay = g
+            
+            endDay = (blockLength + g - 1) % planningLength
+            
+            if endDay <= startDay:
+                if day in range(startDay,planningLength) or day in range(endDay):
+                    if (b,g) not in coverage:
+                        coverage.append((b,g))
+            else:
+                if day in range(startDay,endDay+1):
+                    if (b,g) not in coverage:
+                        coverage.append((b,g))
+    return coverage
 
+def maxNumBlocks():
+    minLengthBlock = minD + minWork
+    
+    maxNum = (schedulingLength) / minLengthBlock
+    
+    return int(maxNum)
 
-
-def additionEmp (n1, n2):
-    additionCount = 0
-    
-    shiftBlock1 = B[n1[0]]
-    shiftBlock2 = B[n2[0]]
-    
-    #first day of the block
-    startDay1 = n1[1]
-    startDay2 = n2[1]
-    
-    #length of the shift block
-    blockLeng1 = len(shiftBlock1)
-    blockLeng2 = len(shiftBlock2)
-    
-    #last day of the block
-    blockEnd1 = startDay1 + blockLeng1 - 1
-    blockEnd2 = startDay2 + blockLeng2 - 1
-    
-    #if the first block goes beyond the end of the schedule, 
-    #we need an additional employee to take the exceeding part 
-    if blockEnd1 > planningLength - 1:
-        additionCount += 1
- 
-    #if the second schedule is to be started before or during the first block
-    #we need an additional employee to take the second block
-    if blockEnd1 >= startDay2:
-        additionCount += 1
-
-    #if the second block goes beyond the end of the schedule, 
-    #we need an additional employee to take the exceeding part    
-    if blockEnd2 > planningLength - 1:
-        additionCount += 1
-    
-    return additionCount
 
 def cantUseNodes(N):
     cantUse = []
-    for n1 in N:
-        for n2 in N:
-            shiftBlock1 = B[n1[0]]
-            shiftBlock2 = B[n2[0]]
+    length = len(N)
     
-            #first day of the block
-            startDay1 = n1[1]
-            startDay2 = n2[1]
+    sinkNodeIndex = length - 1
+    startNodeIndex = length - 2
     
-            #length of the shift block
-            blockLeng1 = len(shiftBlock1)
-            blockLeng2 = len(shiftBlock2)
-    
-            #last day of the block
-            blockEnd1 = startDay1 + blockLeng1 - 1
-            blockEnd2 = startDay2 + blockLeng2 - 1
-            
-            index1 = N.index(n1)
-            index2 = N.index(n2)
-            
-            # the number of day offs between the last day of block1 and first day of block2
-            offwork = startDay2 - blockEnd1 - 1
-            
-            # if the second block is worked by another employee, the offwork interval
-            # goes over to the next week
-            if blockEnd1 >= startDay2:
-                offwork += 7
 
-            # check if the offwork lengths satisfy the max and min lengths
-            if offwork < minD or offwork > maxD:
-                if (index1,index2) not in cantUse:
-                    cantUse.append((index1,index2))
+    cantUse.append((sinkNodeIndex,startNodeIndex))
+    cantUse.append((sinkNodeIndex,sinkNodeIndex))
+    cantUse.append((startNodeIndex,sinkNodeIndex))
+    cantUse.append((startNodeIndex,startNodeIndex))
+    
+    for n1 in range(startNodeIndex):
+        
+        if (n1,startNodeIndex) not in cantUse:
+            cantUse.append((n1,startNodeIndex))
             
-            # check forbidden sequence of length 3
-            if len(F3) > 0 and offwork == 1:
+        if (sinkNodeIndex,n1) not in cantUse:
+            cantUse.append((sinkNodeIndex,n1)) 
+        
+        for n2 in range(startNodeIndex):
+            
+            
+            if n1 == n2:
+                if (n1,n2) not in cantUse:
+                    cantUse.append((n1,n2))     
+                
+            
+            
+            shiftBlock1 = N[n1][0]
+            shiftBlock2 = N[n2][0]
+            
+            blockLength1 = len(shiftBlock1)
+            blockLength2 = len(shiftBlock2)
+            
+            startDay1 = N[n1][1]
+            startDay2 = N[n2][1]
+            
+            dayOffIndex = shiftBlock1.index(3)
+            
+            EndDay1 = (startDay1 + blockLength1 - 1) % planningLength
+            
+            if startDay2 != (EndDay1 + 1) % planningLength:
+                if (n1,n2) not in cantUse:
+                    cantUse.append((n1,n2))
+            
+            numDayOffs = blockLength1 - dayOffIndex
+            
+            if len(F3) > 0 and numDayOffs == 1:
                 for i in F3:
-                    if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
-                        if (index1,index2) not in cantUse:
-                            cantUse.append((index1,index2))
-            
-            
-    return cantUse
+                    if shiftBlock1[dayOffIndex - 1] == i[0] and shiftBlock2[0] == i[1]:
+                        if (n1,n2) not in cantUse:
+                            cantUse.append((n1,n2))
+    return cantUse   
 
-def getLength (b):
-    block = B[b]
-    
-    return len(block)
-    
-BW = range(len(B))
-m = Model("master")
+Num = range(1,maxNumBlocks()+1)
+print("master problem")
+m = Model("master problem")
+
+X = {(b,d):m.addVar(vtype = GRB.INTEGER) for b in B for d in G}
+
+Y = {(b,d,n):m.addVar(vtype = GRB.BINARY) for b in B for d in G for n in Num}
+
+
+DemandRequirement = {(s,d):m.addConstr(quicksum(X[b,g] for (b,g) in X if (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
+
+LinkXAndY = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in Num)) for (b,d) in X}
+
+OneY = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in Num) <= 1) for (b,d) in X}
+print("last constraint  ")
+ExactLength = m.addConstr(quicksum(X[b,d] * len(b) for (b,d) in X) == schedulingLength)
+
+#CoverageDays = {d: m.addConstr(quicksum(X[b,dd] for (b,dd) in DayCoverage(d)) == numEmployee) for d in G}
+
+
 m.setParam('OutputFlag',0)
+m.setParam("LazyConstraints",1)
 m.setParam('Threads',1)
 
-#number of times that shift block b starts from day d
-X = {(b,d):m.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
-
-
-
-#sum of blocks b that start from day g that can provide coverage on shift s and day d must equal to the demand s and d. 
-OnShiftDemand = {(s,d):m.addConstr( quicksum(X[b,g] for (b,g) in C(s,d)) == workDemand[s][d]) for s in S for d in G}
-
-#warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
-# the totak day offs >= the number of day off blocks * minimal length of day off block
-#total day offs  = schedule length - total shift days
-WarmUpLowerCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) >= quicksum(X[b,d] for d in G for b in BW) * minD)
-
-
-#warm up initial cut: given the number of shift blocks == number of off blocks, for a feasible solution to occur, it is necessarily that 
-# the totak day offs <= the number of day off blocks * maximum length of day off block
-#total day offs  = schedule length - total shift days
-WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
-
-
-
-
-# =============================================================================
-# i = 1
-# while i <= 400:
-#     m.optimize()
-#     print("iteration" + str(i))
-#     print("covers found")
-#     
-#     if m.status == GRB.INFEASIBLE:
-#         print("infeasible master")
-#         break
-#     
-#     #Set of nodes
-#     N = []
-#     
-#     for d in G:
-#         for b in BW:
-#             if X[b,d].x > 0.9:
-#                 N.append((b,d))
-#                 print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
-#     
-#     #Idea of improvement : better way to determine the factors of a hamiltonian circle
-#         
-#     # solving for the subproblem
-#     
-#     NN = range(len(N))
-#     K = cantUseNodes(N)
-#     
-#     s = Model("subproblem")
-#     
-#     #1 if node j comes after node i
-#     V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
-#     
-#     # the total additional employees needed will equal to the total number of employees
-#     EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for i in NN for j in NN) == numEmployee)
-#     
-#     #Conservation of flow
-#     OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN if j != i) == 1) for i in NN}
-#     OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN if j != i) == 1) for j in NN}
-#     
-#     CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
-#     s.setParam('OutputFlag',0)
-#     s.optimize()
-#     
-# 
-#     if s.status == GRB.INFEASIBLE:
-#         
-#         valueX = {}
-#         bigV = []
-#         infeasible = []
-#         for d in G:
-#             for b in BW:
-#                 if X[b,d].x > 0.9:
-#                     infeasible.append((b,d))
-#                     valueX[(b,d)] = X[b,d].x
-#         bigI.append(infeasible)
-#         bigV.append(valueX)
-#         
-#         
-#         Dummy = {(b,d,p):m.addVar() for p in range(len(bigV)) for (b,d) in bigV[p] }
-#     
-#         
-#         dummyConstr = {p:m.addConstr(Dummy[b,d,p] >= bigV[p][b,d] - X[b,d]) for p in range(len(bigV)) for (b,d) in bigV[p] }
-#         dummyConstr2 = {p:m.addConstr(Dummy[b,d,p] >=  - bigV[p][b,d] + X[b,d]) for p in range(len(bigV)) for (b,d) in bigV[p] }
-#         
-#         newSolution1 = {p:m.addConstr(quicksum(X[b,d] for d in G for b in BW if (b,d) not in bigI[p])  - 1 >= 0) for p in range(len(bigI))}
-#     
-#     i+=1
-# =============================================================================
-
 SolutionSet = []
-
-def Callback (model, where):
+isFeasible = [True]
+def CallBack(model, where):
     if where == GRB.Callback.MIPSOL:
-
+        print("beginning the call back!")
+        
+        #Y[b,d,n]
+        YV = {k: v for (k,v) in zip(Y.keys(), model.cbGetSolution(list(Y.values()))) if v > 0.9}
+        
         N = []
-        XV = {k: v for (k,v) in zip(X.keys(), model.cbGetSolution(list(X.values())))}
-        for d in G:
-            for b in BW:
-                if XV[b,d] > 0.9:
-                    N.append((b,d))
-                    print("block " + str(b) + " starts on day " + str(d) + " " +str(XV[b,d]) + " times")
         
-        #Idea of improvement : better way to determine the factors of a hamiltonian circle
-        print("--------------------")    
-        # solving for the subproblem
-        
-        if XV not in SolutionSet:
-            SolutionSet.append(XV)
-            print("solution appended. current length: " + str(len(SolutionSet)))
+        for k in YV:
+            for i in range(k[2]):
+                N.append((k[0],k[1]))
+                
+        N.append('start')
+        N.append('sink')
+        if YV.keys() not in SolutionSet:
+                SolutionSet.append(YV.keys())
+                print("solution appended. current length: " + str(len(SolutionSet)))
         else:
-            print("ohhhhh cyclic!")
-            model.terminate()
-            return
+                print("ohhhhh cyclic!")
+                isFeasible[0] = False
+                model.terminate()
+                return
         
+        K = cantUseNodes(N)
+        
+        startIndex = len(N) - 2
+        endIndex = len(N) - 1
         
         NN = range(len(N))
-        K = cantUseNodes(N)
-        s = Model("subproblem")
+        appearanceCount = {n:0 for n in NN}
         
-        #1 if node j comes after node i
+        for k in K:
+            (k1,k2) = k
+            
+            appearanceCount[k1] += 1
+        
+        for k in appearanceCount:
+            if appearanceCount[k] == len(N):
+                model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
+                return
+        
+        s = Model("subproblem")
+    
         V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
         
-        # the total additional employees needed will equal to the total number of employees
-        EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for i in NN for j in NN) == numEmployee)
-        
         #Conservation of flow
-        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN if j != i) == 1) for i in NN}
-        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN if j != i) == 1) for j in NN}
+        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN) <= 1) for i in NN}
+        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN) <= 1) for j in NN}
         
-        CantUseNodesInK = {(i,j):s.addConstr(V[i,j] == 0) for (i,j) in K}
+        FlowConservation = {i:s.addConstr(quicksum(V[i,j] for j in NN) - quicksum(V[j,i] for j in NN) == 0) for i in NN if i < startIndex}
+        
+        ForbiddenNodes = {(i,j):s.addConstr(V[i,j] == 0) for i in NN for j in NN if (i,j) in K}
+        
         s.setParam('OutputFlag',0)
-        s.optimize()
-        if s.status != GRB.INFEASIBLE:
-            for i in NN:
-                for j in NN:
-                    if V[i,j].x > 0.9:
-                        print("a")
-                        #print("node "+ str(i) + " to node " + str(j))
+        s.setParam("LazyConstraints",1)
         
+        def CallbackSub (model, where):
+            if where == GRB.Callback.MIPSOL:
+                print("begining the subcycle elimination!")
+                
+                SubSol = {k: v for (k,v) in zip(V.keys(), model.cbGetSolution(list(V.values()))) if v >0.9}
+
+                firstNode = 0
+                for k in SubSol:
+                    if k[0] == startIndex:
+                        firstNode = k[1]
+                    
+                    if k[0] == endIndex:
+                        lastNode = k[1]
+                
+                if (lastNode,firstNode) in K:
+                    model.cbLazy(V[startIndex,firstNode] + V[endIndex, lastNode] <= 1)
+                
+        s.optimize(CallbackSub)
         
-    
         if s.status == GRB.INFEASIBLE:
+
+
+            model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
             
-            valueX = {}
-            infeasible = []
-            for d in G:
-                for b in BW:
-                    if XV[b,d] > 0.9:
-                        infeasible.append((b,d))
-                        valueX[(b,d)] = XV[b,d]
+        else:
+            
+            
+            if s.status != GRB.INFEASIBLE:
+                Path = {}
+                for (i,j) in V:
+                    print(i,i,V[i,j].x)
+                    if V[i,j].x > 0.9:
+                        print("node "+ str(i) + " to node " + str(j))
+                        Path[i] = j
+                keys = Path.keys()
+                
+                
+                for i in keys:
+                    start = i
+                    break
+                
+                current = start
+                
+                Order = []
+                
+                for i in Path:
+                    current = Path[current]
+                    Order.append(current)    
+                print(Order)
+                
+                for i in Order:
+                    print(N[i][0],":",N[i][1])
 
-            model.cbLazy(quicksum(X[b,d] for b in BW for d in G if (b,d) not in infeasible) + quicksum(valueX[b,d] - X[b,d] for (b,d) in infeasible) -1 >= 0)
-# =============================================================================
-
-# =============================================================================
-m.setParam('LazyConstraints', 1)
-
-#while True:
-N = []
-m.optimize(Callback)
-for d in G:
-    for b in BW:
-        if X[b,d].x > 0:
-            N.append((b,d))
-            print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
-print("----------------------------------------")
-
-# =============================================================================
-
-NN = range(len(N))
-K = cantUseNodes(N)
-
-p = Model("subproblem")
-
-#1 if node j comes after node i
-C = {(i,j):p.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
-
-# the total additional employees needed will equal to the total number of employees
-EmployeeNum2 = p.addConstr(quicksum(additionEmp(N[i],N[j])*C[i,j] for i in NN for j in NN if i != j) == numEmployee)
-
-#Conservation of flow
-OneEdgeOut2 = {i:p.addConstr(quicksum(C[i,j] for j in NN if j != i) == 1) for i in NN}
-OneEdgeIn2 = {j:p.addConstr(quicksum(C[i,j] for i in NN if j != i) == 1) for j in NN}
-
-CantUseNodesInK2 = {(i,j):p.addConstr(C[i,j] == 0) for (i,j) in K}
-p.setParam('OutputFlag',0)
-p.optimize()
-
-if p.status == GRB.INFEASIBLE:
-    print("fuck")
-    #break
-# =============================================================================
-# =============================================================================
-# for i in NN:
-#     for j in NN:
-#         if C[i,j].x > 0.9:
-#             print("node " + str(i) + " to node " + str(j))
-# =============================================================================
-# =============================================================================
-# =============================================================================
-
-#idea for better cuts:
-    #1. given that we know the number of shift blocks WILL equal to the number
-    # of day off blocks. We can do a warm start cut that ensures:
-    # the number of total work offs days must be >= number of shift blocks x minimum day off length
-    # Vice Versa, check: number of t total work offs <= number of shift blocks x maximum day oof length
-    
-    
-    # when detect such defective solution, we either make the cut such that
+m.optimize(CallBack)     
+                
