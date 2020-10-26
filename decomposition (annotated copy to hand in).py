@@ -8,7 +8,7 @@ from fileReader import *
 file = "testcases/Example"
 
 # the test intance number to choose
-num = 13
+num = 519
 
 # a map that contains all the necessary data
 dataMap = read_data(file+str(num)+".txt")
@@ -69,7 +69,7 @@ F3 = dataMap['notAllowedShiftSequences3']
 #==================COMPUTIING THE SET OF FEASIBLE SHIFT BLOCKS B===============
 
 # a list of feasible working blocks
-W = []
+B = []
 
 DW = range(maxWork)
 
@@ -119,12 +119,12 @@ while L <= maxWork:
     maxLengthShift = {s:m.addConstr(quicksum(X[s,d] for d in DW) <= maxShift[s]) for s in S}
     
     #Finding multiple solutions
-    if len(W) > 0:
+    if len(B) > 0:
         
         # no-good cut/ rubbish cut: cuts off the discovered solutions in the set W
         newSolution = {b:m.addConstr(quicksum(X[s,d] for s in S for d in range(len(b)) if s != b[d]) 
                                     + quicksum(1 - X[b[d],d] for d in range(len(b))) >= 1) 
-            for b in W if len(b) == L}
+            for b in B if len(b) == L}
     
     m.optimize()
     
@@ -137,43 +137,14 @@ while L <= maxWork:
                     b.append(s)
         
         b = tuple(b)
-        W.append(b)
+        B.append(b)
 
     else:
         L = L + 1
 
-
-#generate day - off blocks
-# here a day off "shift" is denoted 3
-def BreakBlockGen():
-    """
-        return: set of all possible consecutive day-off blocks
-    """
-    O = []
-    for i in range(minD,maxD+1):
-        o = []
-        for j in range(i):
-            o.append(3)
-        O.append(tuple(o))
-    return O
-
-
-O = BreakBlockGen()
-
-# comebine all possible working blocks with all possible day-off blocks
-# one element in B is in the format of : (0,1,2,3,3,3)
-# 0 - morning, 1 - afternoon, 2 - night, 3 - day off
-B = []
-for w in W:
-    for o in O:
-        b = w + o
-        if b not in B:
-            B.append(b)
-        
-
 print("feasible blocks found")
-print("there are ",len(W),"shift blocks in total")
-print("there are ",len(B),"shift blocks (extended) in total")
+
+print("there are ",len(B),"shift blocks in total")
 
 
 #====================USEFUL FUNCTIONS========================================
@@ -193,11 +164,6 @@ def Coverage(b,d):
     coverageList = []
     
     for i in b:
-        
-        # break after enumerating all the working shifts on the block
-        # 3 denotes a day-off "shift"
-        if i == 3:
-            break
         
         coverageList.append((i,currentDay))
         currentDay = (currentDay + 1) % planningLength
@@ -231,12 +197,56 @@ def maxNumBlocks():
     """
     Computes the upperbound of how many shift blocks can there be in a schedule
     """
-    minLengthBlock = minD + minWork
+    minLengthBlock = minWork
     
     maxNum = (schedulingLength) / minLengthBlock
     
     return int(maxNum)
 
+def additionEmp (n1, n2):
+    """
+    Calculates how many additional employees are needed if node n1 connects to
+    node n2
+    
+        parameter:
+            n1 - the first node
+            n2 - the second node
+        return:
+            additionalCount - number of employees needed
+    """
+    additionCount = 0
+    
+    shiftBlock1 = n1[0]
+    shiftBlock2 = n2[0]
+    
+    #first day of the block
+    startDay1 = n1[1]
+    startDay2 = n2[1]
+    
+    #length of the shift block
+    blockLeng1 = len(shiftBlock1)
+    blockLeng2 = len(shiftBlock2)
+    
+    #last day of the block
+    blockEnd1 = startDay1 + blockLeng1 - 1
+    blockEnd2 = startDay2 + blockLeng2 - 1
+    
+    #if the first block goes beyond the end of the week, 
+    #we need an additional employee to take the exceeding part 
+    if blockEnd1 > planningLength - 1:
+        additionCount += 1
+ 
+    #if the second block is to be started before or during the first block
+    #we need an additional employee to take the second block
+    if blockEnd1 % planningLength >= startDay2:
+        additionCount += 1
+
+    #if the second block goes beyond the end of the week, 
+    #we need an additional employee to take the exceeding part    
+    if blockEnd2 > planningLength - 1:
+        additionCount += 1
+    
+    return additionCount
 
 def cantUseNodes(N):
     """
@@ -255,44 +265,47 @@ def cantUseNodes(N):
     for n1 in range(len(N)):
         for n2 in range(len(N)):
             
-            # no self edge
-            if n1 == n2:
+            if(n1 == n2):
                 if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))                
-                
-            
+                    cantUse.append((n1,n2))
+                continue
             
             shiftBlock1 = N[n1][0]
             shiftBlock2 = N[n2][0]
-            
-            blockLength1 = len(shiftBlock1)
-            blockLength2 = len(shiftBlock2)
-            
+    
+            #first day of the block
             startDay1 = N[n1][1]
             startDay2 = N[n2][1]
+    
+            #length of the shift block
+            blockLeng1 = len(shiftBlock1)
+            blockLeng2 = len(shiftBlock2)
+    
+            #last day of the block
+            blockEnd1 = (startDay1 + blockLeng1 - 1) % planningLength
+            blockEnd2 = (startDay2 + blockLeng2 - 1) % planningLength
+
             
-            dayOffIndex = shiftBlock1.index(3)
+            # the number of day offs between the last day of block1 and first day of block2
+            offwork = startDay2 - blockEnd1 - 1
             
-            EndDay1 = (startDay1 + blockLength1 - 1) % planningLength
-            
-            # two nodes can only connect
-            # if the end of the first node is followed by the start of the second
-            # without a gap
-            if startDay2 != (EndDay1 + 1) % planningLength:
+            # if the second block is worked by another employee, the offwork interval
+            # goes over to the next week
+            if blockEnd1 >= startDay2:
+                offwork += 7
+
+            # check if the offwork lengths satisfy the max and min lengths
+            if offwork < minD or offwork > maxD:
                 if (n1,n2) not in cantUse:
                     cantUse.append((n1,n2))
             
-            # if the day off block is of length one at the end of first node,
-            # then check if the last shift of node 1 and the first shift of node 2
-            # have formed a forbidden sequence
-            numDayOffs = blockLength1 - dayOffIndex
-            
-            if len(F3) > 0 and numDayOffs == 1:
+            # check forbidden sequence of length 3
+            if len(F3) > 0 and offwork == 1:
                 for i in F3:
-                    if shiftBlock1[dayOffIndex - 1] == shiftType.index(i[0]) and shiftType.index(i[1]):
+                    if shiftBlock1[blockLeng1 - 1] == shiftType.index(i[0]) and shiftBlock2[0] == shiftType.index(i[1]):
                         if (n1,n2) not in cantUse:
                             cantUse.append((n1,n2))
-    return cantUse   
+    return cantUse
 
 def Output(order, N):
     """
@@ -302,39 +315,31 @@ def Output(order, N):
             order - list of nodes in order in the schedule
             N - list of nodes
     """
-    shiftSequence = []
     outputString = ""
     scheduleMatrix = []
-    
-    
-
-    for o in order:
-        shiftBlock = N[o][0]
-        
-        for s in shiftBlock:
-            shiftSequence.append(s)
     
     for e in E:
         scheduleMatrix.append([])
         for d in G:
             scheduleMatrix[e].append(-1)
-            
     
-    firstNode = N[order[0]]
-    
-    firstStart = firstNode[1]
-    
-    
-    currentEmployee = 0
-    currentDay = firstStart
-    
-    for s in shiftSequence:
-        scheduleMatrix[currentEmployee][currentDay] = s
-        currentDay += 1
+    currentEmp = 0
+    for o in order:
+        shiftBlock = N[o][0]
+        startDay = N[o][1]
         
-        if currentDay > 6:
-            currentEmployee = (currentEmployee + 1) % numEmployee
-            currentDay = 0
+        currentDay = startDay
+
+        for i in shiftBlock:
+            scheduleMatrix[currentEmp][currentDay] = i
+            currentDay += 1
+
+            
+            if currentDay > 6:
+                currentEmp = (currentEmp + 1) % numEmployee
+                currentDay = 0
+        
+        
             
     shiftString = ''
     for e in E:
@@ -354,10 +359,6 @@ def Output(order, N):
     
     return shiftString
 
-    
-    
-    
-    
 #========================MASTER PROBLEM=======================================
 # the possible number of times that the same block on the same day can be used
 Num = range(1,maxNumBlocks()+1)
@@ -382,14 +383,6 @@ LinkXAndY = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in Num))
 # at most one Y is allowed. all Y's are 0 means that a block is not used
 OneY = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in Num) <= 1) for (b,d) in X}
 
-# the length of all blocks added together must be the length of the scehdule
-ExactLength = m.addConstr(quicksum(X[b,d] * len(b) for (b,d) in X) == schedulingLength)
-
-# if a block on day d is chosen, then there must be one block that is chosen
-# to follow the end of this block
-AtLeastOneFollowUp = {(b,d):m.addConstr( quicksum(X[bb,dd] for bb in B for dd in G if dd == (len(b) + d) % planningLength)>= X[b,d]) 
-                        for b in B for d in G}
-
 
 m.setParam('OutputFlag',0)
 m.setParam("LazyConstraints",1)
@@ -399,7 +392,7 @@ m.setParam('Threads',1)
 SolutionSet = []
 
 # are there feasible subproblem solutions?
-global isFeasible
+
 isFeasible = True
 
 def CallBack(model, where):
@@ -413,13 +406,14 @@ def CallBack(model, where):
                 
         # check if this master problem has been found before
         if YV.keys() not in SolutionSet:
-                SolutionSet.append(YV.keys())
-                print("solution appended. current length: " + str(len(SolutionSet)))
-        else:
-                print("terminated because encountered a previous master probelm solution")
-                isFeasible = False
-                model.terminate()
-                return
+            SolutionSet.append(YV.keys())
+            print("master solution appended. current length: " + str(len(SolutionSet)))
+        else:   
+            global isFeasible
+            print("terminated because encountered a previous master probelm solution")
+            isFeasible = False
+            model.terminate()
+            return
             
         #============================SUBPROBELM==================================
         N = []
@@ -442,6 +436,9 @@ def CallBack(model, where):
         #Conservation of flow
         OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN) == 1) for i in NN}
         OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN) == 1) for j in NN}
+        
+        # the total additional employees needed will equal to the total number of employees
+        EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for i in NN for j in NN) == numEmployee)
         
         # no forbidden connections
         ForbiddenNodes = {(i,j):s.addConstr(V[i,j] == 0) for i in NN for j in NN if (i,j) in K}
@@ -486,7 +483,7 @@ def CallBack(model, where):
                 # if there is at least one subcycle
                 # cut them off from the current subproblem solution
                 if len(SubPaths) > 0:
-                    
+
                     for sub in SubPaths:
                         model.cbLazy(quicksum(V[n1,n2] 
                                             for n1 in sub for n2 in sub
@@ -533,4 +530,4 @@ if m.status == GRB.INFEASIBLE:
     print("no feasible master solution")
 else:
     if isFeasible == False:
-        print("no feasible sub solution")   
+        print("no feasible sub solution")    
