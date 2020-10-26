@@ -273,6 +273,8 @@ OneY = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in Num) <= 1) for (b,d) in X}
 print("last constraint  ")
 ExactLength = m.addConstr(quicksum(X[b,d] * len(b) for (b,d) in X) == schedulingLength)
 
+AtLeastOneFollowUp = {(b,d):m.addConstr( quicksum(X[bb,dd] for bb in B for dd in G if dd == (len(b)+d)%planningLength)>= X[b,d]) for b in B for d in G}
+
 #CoverageDays = {d: m.addConstr(quicksum(X[b,dd] for (b,dd) in DayCoverage(d)) == numEmployee) for d in G}
 
 
@@ -314,23 +316,23 @@ def CallBack(model, where):
         NN = range(len(N))
         appearanceCount = {n:0 for n in NN}
         
-        for k in K:
-            (k1,k2) = k
-            
-            appearanceCount[k1] += 1
+        #for k in K:
+        #    (k1,k2) = k
+        #    
+        #    appearanceCount[k1] += 1
         
-        for k in appearanceCount:
-            if appearanceCount[k] == len(N):
-                model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
-                return
+        #for k in appearanceCount:
+        #    if appearanceCount[k] == len(N):
+        #        model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
+        #        return
         
         s = Model("subproblem")
     
         V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
         
         #Conservation of flow
-        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN) <= 1) for i in NN}
-        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN) <= 1) for j in NN}
+        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN) == 1) for i in NN if i != endIndex}
+        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN) == 1) for j in NN if j != startIndex}
         
         FlowConservation = {i:s.addConstr(quicksum(V[i,j] for j in NN) - quicksum(V[j,i] for j in NN) == 0) for i in NN if i < startIndex}
         
@@ -349,9 +351,11 @@ def CallBack(model, where):
                 for k in SubSol:
                     if k[0] == startIndex:
                         firstNode = k[1]
+                        print(k)
                     
-                    if k[0] == endIndex:
-                        lastNode = k[1]
+                    if k[1] == endIndex:
+                        lastNode = k[0]
+                        print(k)
                 
                 if (lastNode,firstNode) in K:
                     model.cbLazy(V[startIndex,firstNode] + V[endIndex, lastNode] <= 1)

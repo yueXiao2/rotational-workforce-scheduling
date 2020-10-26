@@ -3,8 +3,7 @@ from fileReader import *
 import time
 
 file = "testcases/Example"
-num = 1
-
+num = 2000
 dataMap = read_data(file+str(num)+".txt")
 
 planningLength = dataMap['scheduleLength']
@@ -291,17 +290,17 @@ def CallBack(model, where):
         K = cantUseNodes(N)
         
         NN = range(len(N))
-        appearanceCount = {n:0 for n in NN}
+        #appearanceCount = {n:0 for n in NN}
         
-        for k in K:
-            (k1,k2) = k
+        #for k in K:
+        #    (k1,k2) = k
             
-            appearanceCount[k1] += 1
+        #    appearanceCount[k1] += 1
         
-        for k in appearanceCount:
-            if appearanceCount[k] == len(N):
-                model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
-                return
+        #for k in appearanceCount:
+        #    if appearanceCount[k] == len(N):
+        #        model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
+        #        return
         
         s = Model("subproblem")
     
@@ -357,10 +356,14 @@ def CallBack(model, where):
                         if len(i) > LongestSubCycleLength:
                             LongestSub = i
                             LongestSubCycleLength = len(i)
-                    
+                    #model.cbLazy(quicksum(V[n1,n2] 
+                    #                    for n1 in LongestSub for n2 in LongestSub
+                    #                    if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
+    
+                for sub in SubPaths:
                     model.cbLazy(quicksum(V[n1,n2] 
-                                        for n1 in LongestSub for n2 in LongestSub
-                                        if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
+                                        for n1 in s for n2 in s
+                                        if (n1,n2) in SubSol)<= len(s) - 1)
 
         s.optimize(CallbackSubCycle)
         

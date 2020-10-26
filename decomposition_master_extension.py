@@ -4,7 +4,6 @@ import time
 
 file = "testcases/Example"
 num = 2000
-
 dataMap = read_data(file+str(num)+".txt")
 
 planningLength = dataMap['scheduleLength']
@@ -130,10 +129,16 @@ def BreakBlockGen():
 
 O = BreakBlockGen()
 
-B = W
+B = []
+for w in W:
+    for o in O:
+        b = w + o
+        if b not in B:
+            B.append(b)
         
 
 print("feasible blocks found")
+print(len(W))
 print(len(B))
 
 #Computes the converage of a shift block b starting on day d
@@ -196,31 +201,12 @@ def maxNumBlocks():
 
 def cantUseNodes(N):
     cantUse = []
-    length = len(N)
-    
-    sinkNodeIndex = length - 1
-    startNodeIndex = length - 2
-    
-
-    cantUse.append((sinkNodeIndex,startNodeIndex))
-    cantUse.append((sinkNodeIndex,sinkNodeIndex))
-    cantUse.append((startNodeIndex,sinkNodeIndex))
-    cantUse.append((startNodeIndex,startNodeIndex))
-    
-    for n1 in range(startNodeIndex):
-        
-        if (n1,startNodeIndex) not in cantUse:
-            cantUse.append((n1,startNodeIndex))
-            
-        if (sinkNodeIndex,n1) not in cantUse:
-            cantUse.append((sinkNodeIndex,n1)) 
-        
-        for n2 in range(startNodeIndex):
-            
+    for n1 in range(len(N)):
+        for n2 in range(len(N)):
             
             if n1 == n2:
                 if (n1,n2) not in cantUse:
-                    cantUse.append((n1,n2))     
+                    cantUse.append((n1,n2))                
                 
             
             
@@ -232,32 +218,23 @@ def cantUseNodes(N):
             
             startDay1 = N[n1][1]
             startDay2 = N[n2][1]
-    
-            #last day of the block
-            blockEnd1 = (startDay1 + blockLeng1 - 1) % planningLength
-            blockEnd2 = (startDay2 + blockLeng2 - 1) % planningLength
-            # the number of day offs between the last day of block1 and first day of block2
-            offwork = startDay2 - blockEnd1 - 1
             
-            # if the second block is worked by another employee, the offwork interval
-            # goes over to the next week
-            if blockEnd1 >= startDay2:
-                offwork += 7
-
-            # check if the offwork lengths satisfy the max and min lengths
-            if offwork < minD or offwork > maxD:
+            dayOffIndex = shiftBlock1.index(3)
+            
+            EndDay1 = (startDay1 + blockLength1 - 1) % planningLength
+            
+            if startDay2 != (EndDay1 + 1) % planningLength:
                 if (n1,n2) not in cantUse:
                     cantUse.append((n1,n2))
             
-            # check forbidden sequence of length 3
-            if len(F3) > 0 and offwork == 1:
+            numDayOffs = blockLength1 - dayOffIndex
+            
+            if len(F3) > 0 and numDayOffs == 1:
                 for i in F3:
-                    if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
-                        if (index1,index2) not in cantUse:
-                            cantUse.append((index1,index2))
-            n2Index+=1
-        n1Index+=1
-    return cantUse
+                    if shiftBlock1[dayOffIndex - 1] == i[0] and shiftBlock2[0] == i[1]:
+                        if (n1,n2) not in cantUse:
+                            cantUse.append((n1,n2))
+    return cantUse   
 
 Num = range(1,maxNumBlocks()+1)
 print("master problem")
@@ -275,6 +252,8 @@ LinkXAndY = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in Num)) fo
 OneY = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in Num) <= 1) for (b,d) in X}
 print("last constraint  ")
 ExactLength = m.addConstr(quicksum(X[b,d] * len(b) for (b,d) in X) == schedulingLength)
+
+AtLeastOneFollowUp = {(b,d):m.addConstr( quicksum(X[bb,dd] for bb in B for dd in G if dd == (len(b)+d)%planningLength)>= X[b,d]) for b in B for d in G}
 
 #CoverageDays = {d: m.addConstr(quicksum(X[b,dd] for (b,dd) in DayCoverage(d)) == numEmployee) for d in G}
 
@@ -311,17 +290,17 @@ def CallBack(model, where):
         K = cantUseNodes(N)
         
         NN = range(len(N))
-        appearanceCount = {n:0 for n in NN}
+        #appearanceCount = {n:0 for n in NN}
         
-        for k in K:
-            (k1,k2) = k
+        #for k in K:
+        #    (k1,k2) = k
             
-            appearanceCount[k1] += 1
+        #    appearanceCount[k1] += 1
         
-        for k in appearanceCount:
-            if appearanceCount[k] == len(N):
-                model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
-                return
+        #for k in appearanceCount:
+        #    if appearanceCount[k] == len(N):
+        #        model.cbLazy(quicksum(Y[k] for k in Y if k not in YV) + quicksum(1- Y[k] for k in YV) -1 >= 0)
+        #        return
         
         s = Model("subproblem")
     
@@ -377,10 +356,14 @@ def CallBack(model, where):
                         if len(i) > LongestSubCycleLength:
                             LongestSub = i
                             LongestSubCycleLength = len(i)
-                    
+                    #model.cbLazy(quicksum(V[n1,n2] 
+                    #                    for n1 in LongestSub for n2 in LongestSub
+                    #                    if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
+    
+                for sub in SubPaths:
                     model.cbLazy(quicksum(V[n1,n2] 
-                                        for n1 in LongestSub for n2 in LongestSub
-                                        if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
+                                        for n1 in s for n2 in s
+                                        if (n1,n2) in SubSol)<= len(s) - 1)
 
         s.optimize(CallbackSubCycle)
         
@@ -395,9 +378,8 @@ def CallBack(model, where):
             if s.status != GRB.INFEASIBLE:
                 Path = {}
                 for (i,j) in V:
-                    print(i,i,V[i,j].x)
                     if V[i,j].x > 0.9:
-                        print("node "+ str(i) + " to node " + str(j))
+                        print("node "+ str(i) +":" + str(N[i])+ " to node " + str(j)+":"+str(N[j]))
                         Path[i] = j
                 keys = Path.keys()
                 
@@ -418,5 +400,4 @@ def CallBack(model, where):
                 for i in Order:
                     print(N[i][0],":",N[i][1])
 
-m.optimize(CallBack)     
-                
+m.optimize(CallBack)
