@@ -61,7 +61,7 @@ def additionEmp (n1, n2, B, planningLength):
     
     return additionCount
 
-def cantUseNodes(N, B, planningLength, minD, maxD, F3):
+def cantUseNodes(N, B, planningLength, minD, maxD, F3, shiftType):
     cantUse = []
     for n1 in range(len(N)):
         for n2 in range(len(N)):
@@ -103,7 +103,7 @@ def cantUseNodes(N, B, planningLength, minD, maxD, F3):
             # check forbidden sequence of length 3
             if len(F3) > 0 and offwork == 1:
                 for i in F3:
-                    if shiftBlock1[blockLeng1 - 1] == i[0] and shiftBlock2[0] == i[1]:
+                    if shiftBlock1[blockLeng1 - 1] == shiftType.index(i[0]) and shiftBlock2[0] == shiftType.index(i[1]):
                         if (n1,n2) not in cantUse:
                             cantUse.append((n1,n2))
     return cantUse
@@ -113,27 +113,12 @@ def getLength(b, B):
     
     return len(block)
 
-def maxAllowance(block, start, G, BW, workDemand, S, B, planningLength):
-    k = Model("maximum allowance of block b starting on d") 
-    k.setParam('OutputFlag',0)
-    #print(block,start)
-    X = {}
-    #number of times that shift block b starts from day d
-    X = {(b,d):k.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
-
-    Demand = {(s,d):k.addConstr( quicksum(X[b,g] for (b,g) in Something(s,d, G, B, planningLength)) == workDemand[s][d]) for s in S for d in G}
+def maxAllowance(schedulingLength, minWork, minD):
+    minLengthBlock = minWork + minD
     
-    k.setObjective(X[block, start], GRB.MAXIMIZE)
-    k.optimize()
+    maxNum = (schedulingLength) / minLengthBlock
     
-    if k.status == GRB.INF_OR_UNBD:
-        k.setParam("DualReductions",0)
-        k.optimize()
-    
-    maximumCount = 0
-    if k.status == GRB.OPTIMAL:
-        maximumCount = X[block,start].x
-    return int(round(maximumCount))
+    return int(maxNum)
 
 def decompCuts(queue, file):
     dataMap = read_data(file)
@@ -254,11 +239,7 @@ def decompCuts(queue, file):
       
     BW = range(len(B))
     
-    maximumAllowance = {}
-    
-    for b in BW:
-        for d in G:
-            maximumAllowance[b,d] = maxAllowance(b, d, G, BW, workDemand, S, B, planningLength)
+    Num = range(1,maxAllowance(schedulingLength, minWork, minD)+1)
     
     
     m = Model("master")
@@ -268,7 +249,7 @@ def decompCuts(queue, file):
     #number of times that shift block b starts from day d
     X = {(b,d):m.addVar(vtype = GRB.INTEGER) for d in G for b in BW}
     
-    Y= {(b,d,n):m.addVar(vtype = GRB.BINARY) for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1)}
+    Y= {(b,d,n):m.addVar(vtype = GRB.BINARY) for b in BW for d in G for n in Num}
     
     
     #Terrible LP relaxation. Idea: construct a new variable similar to prac 2012 exam
@@ -288,9 +269,9 @@ def decompCuts(queue, file):
     WarmUpUpperCut = m.addConstr(schedulingLength - quicksum( X[b,d] * getLength(b,B) for d in G for b in BW) <= quicksum(X[b,d] for d in G for b in BW) * maxD)
     
     #The maximum times that a block b can start on day d
-    MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in range(1,maximumAllowance[b,d]+1))) for b in BW for d in G }
+    MaximumAllowanceForBlock = {(b,d):m.addConstr(X[b,d] == quicksum(Y[b,d,n] * n for n in Num)) for b in BW for d in G }
     
-    OneYAtATime = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in range(1,maximumAllowance[b,d]+1)) <= 1) for b in BW for d in G}
+    OneYAtATime = {(b,d):m.addConstr(quicksum(Y[b,d,n] for n in Num) <= 1) for b in BW for d in G}
     
     
     
@@ -316,7 +297,7 @@ def decompCuts(queue, file):
             YV = {k: v for (k,v) in zip(Y.keys(), model.cbGetSolution(list(Y.values())))}
             for d in G:
                 for b in BW:
-                    for n in range(1,maximumAllowance[b,d]+1):
+                    for n in Num:
                         if YV[b,d,n] > 0.9:
                             Ysol.append((b,d,n))
                             
@@ -333,7 +314,7 @@ def decompCuts(queue, file):
             
             
             NN = range(len(N))
-            K = cantUseNodes(N, B, planningLength, minD, maxD, F3)
+            K = cantUseNodes(N, B, planningLength, minD, maxD, F3,shiftType)
             s = Model("subproblem")
             
             #1 if node j comes after node i
@@ -385,17 +366,10 @@ def decompCuts(queue, file):
                             Done |= Path
                     
                     if len(SubPaths) > 0:
-                        LongestSubCycleLength = 0
-                        LongestSub = set()
-                        
-                        for i in SubPaths:
-                            if len(i) > LongestSubCycleLength:
-                                LongestSub = i
-                                LongestSubCycleLength = len(i)
-                        
-                        model.cbLazy(quicksum(V[n1,n2] 
-                                            for n1 in LongestSub for n2 in LongestSub
-                                            if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
+                        for sub in SubPaths:
+                            model.cbLazy(quicksum(V[n1,n2] 
+                                                for n1 in sub for n2 in sub
+                                                if (n1,n2) in SubSol)<= len(sub) - 1)
             
             
             s.optimize(CallbackSubCycle)
@@ -411,7 +385,7 @@ def decompCuts(queue, file):
                             valueX[(b,d)] = XV[b,d]
     
     
-                model.cbLazy(quicksum(Y[b,d,n] for b in BW for d in G for n in range(1,maximumAllowance[b,d]+1) if (b,d,n) not in Ysol) + quicksum(1- Y[b,d,n] for (b,d,n) in Ysol) -1 >= 0)
+                model.cbLazy(quicksum(Y[b,d,n] for b in BW for d in G for n in Num if (b,d,n) not in Ysol) + quicksum(1- Y[b,d,n] for (b,d,n) in Ysol) -1 >= 0)
                 
             else:
                 

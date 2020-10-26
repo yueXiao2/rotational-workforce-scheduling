@@ -232,7 +232,7 @@ def decomp_master(queue, file):
                 
                 if len(F3) > 0 and numDayOffs == 1:
                     for i in F3:
-                        if shiftBlock1[dayOffIndex - 1] == i[0] and shiftBlock2[0] == i[1]:
+                        if shiftBlock1[dayOffIndex - 1] == shiftType.index(i[0]) and shiftBlock2[0] == shiftType.index(i[1]):
                             if (n1,n2) not in cantUse:
                                 cantUse.append((n1,n2))
         return cantUse   
@@ -350,21 +350,14 @@ def decomp_master(queue, file):
                             Done |= Path
                     
                     if len(SubPaths) > 0:
-                        LongestSubCycleLength = 0
-                        LongestSub = set()
-                        
-                        for i in SubPaths:
-                            if len(i) > LongestSubCycleLength:
-                                LongestSub = i
-                                LongestSubCycleLength = len(i)
                         #model.cbLazy(quicksum(V[n1,n2] 
                         #                    for n1 in LongestSub for n2 in LongestSub
                         #                    if (n1,n2) in SubSol)<=LongestSubCycleLength-1)
         
-                    for sub in SubPaths:
-                        model.cbLazy(quicksum(V[n1,n2] 
-                                            for n1 in s for n2 in s
-                                            if (n1,n2) in SubSol)<= len(s) - 1)
+                        for sub in SubPaths:
+                            model.cbLazy(quicksum(V[n1,n2] 
+                                                for n1 in sub for n2 in sub
+                                                if (n1,n2) in SubSol)<= len(s) - 1)
     
             s.optimize(CallbackSubCycle)
             

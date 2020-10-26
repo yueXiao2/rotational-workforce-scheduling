@@ -197,7 +197,7 @@ def maxNumBlocks():
     """
     Computes the upperbound of how many shift blocks can there be in a schedule
     """
-    minLengthBlock = minWork
+    minLengthBlock = minWork + minD
     
     maxNum = (schedulingLength) / minLengthBlock
     
