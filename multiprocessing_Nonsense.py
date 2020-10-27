@@ -14,7 +14,7 @@ times3 = {}
 times4 = {}
 
 def constraints(dataMap):
-    return (dataMap['numEmployees'] > 40)
+    return (dataMap['numEmployees'] > 20)
 
 def decomp_cuts_time():
     fileName = "elapsed times (with cuts).txt"
