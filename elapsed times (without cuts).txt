@@ -1,35 +1,36 @@
 File testcases/Example1.txt didn't complete in time.
 File testcases/Example2.txt didn't complete in time.
 File testcases/Example3.txt didn't complete in time.
-File testcases/Example4.txt needed 0.2770957946777344 seconds to finish with result Feasible
-File testcases/Example5.txt needed 12.13296389579773 seconds to finish with result feasible
-File testcases/Example6.txt needed 1.698089361190796 seconds to finish with result Infeasible
+File testcases/Example4.txt needed 0.22199344635009766 seconds to finish with result Feasible
+File testcases/Example5.txt needed 9.62762451171875 seconds to finish with result feasible
+File testcases/Example6.txt needed 1.4163851737976074 seconds to finish with result Infeasible
+File testcases/Example7.txt didn't complete in time.
 File testcases/Example8.txt didn't complete in time.
+File testcases/Example10.txt didn't complete in time.
+File testcases/Example11.txt didn't complete in time.
 File testcases/Example12.txt didn't complete in time.
+File testcases/Example13.txt didn't complete in time.
 File testcases/Example14.txt didn't complete in time.
-File testcases/Example24.txt needed 0.16903328895568848 seconds to finish with result Infeasible
+File testcases/Example16.txt didn't complete in time.
+File testcases/Example17.txt didn't complete in time.
+File testcases/Example21.txt didn't complete in time.
+File testcases/Example24.txt needed 0.17253851890563965 seconds to finish with result Infeasible
 File testcases/Example25.txt didn't complete in time.
-File testcases/Example33.txt needed 0.15358853340148926 seconds to finish with result Infeasible
-File testcases/Example35.txt needed 2.1562299728393555 seconds to finish with result Infeasible
+File testcases/Example26.txt needed 0.11851215362548828 seconds to finish with result Infeasible
+File testcases/Example27.txt didn't complete in time.
+File testcases/Example28.txt needed 0.11906814575195312 seconds to finish with result Infeasible
+File testcases/Example29.txt didn't complete in time.
+File testcases/Example33.txt needed 0.14076590538024902 seconds to finish with result Infeasible
+File testcases/Example34.txt didn't complete in time.
+File testcases/Example35.txt needed 2.186201572418213 seconds to finish with result Infeasible
+File testcases/Example36.txt needed 0.1657266616821289 seconds to finish with result Infeasible
+File testcases/Example37.txt didn't complete in time.
+File testcases/Example40.txt didn't complete in time.
+File testcases/Example41.txt needed 2.7793073654174805 seconds to finish with result Infeasible
 File testcases/Example43.txt didn't complete in time.
+File testcases/Example44.txt didn't complete in time.
 File testcases/Example45.txt didn't complete in time.
 File testcases/Example46.txt didn't complete in time.
-File testcases/Example50.txt didn't complete in time.
-File testcases/Example55.txt didn't complete in time.
-File testcases/Example56.txt didn't complete in time.
-File testcases/Example57.txt needed 0.1874990463256836 seconds to finish with result Infeasible
-File testcases/Example61.txt didn't complete in time.
-File testcases/Example62.txt needed 0.12765884399414062 seconds to finish with result Infeasible
-File testcases/Example63.txt needed 0.11668825149536133 seconds to finish with result Infeasible
-File testcases/Example70.txt didn't complete in time.
-File testcases/Example71.txt didn't complete in time.
-File testcases/Example72.txt needed 0.1107032299041748 seconds to finish with result Infeasible
-File testcases/Example74.txt didn't complete in time.
-File testcases/Example75.txt needed 0.4209134578704834 seconds to finish with result Infeasible
-File testcases/Example81.txt didn't complete in time.
-File testcases/Example83.txt didn't complete in time.
-File testcases/Example84.txt needed 0.17811942100524902 seconds to finish with result Infeasible
-File testcases/Example85.txt didn't complete in time.
-File testcases/Example91.txt didn't complete in time.
-File testcases/Example96.txt didn't complete in time.
+File testcases/Example47.txt needed 0.13784074783325195 seconds to finish with result Infeasible
+es/Example96.txt didn't complete in time.
 File testcases/Example97.txt needed 0.23072433471679688 seconds to finish with result Infeasible

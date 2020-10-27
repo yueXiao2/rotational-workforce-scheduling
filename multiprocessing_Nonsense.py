@@ -7,6 +7,7 @@ from decomposition_master_extension import *
 import time
 
 timeLimit = 120
+dataSetUsed = 100
 
 times1 = {}
 times2 = {}
@@ -22,7 +23,7 @@ def decomp_cuts_time():
     timesFile = open(fileName,'w')
     
     testFiles = []
-    for num in range(1, 100):
+    for num in range(1, dataSetUsed):
         testFiles.append('testcases/Example' + str(num) + '.txt')
         
     q = Queue()
@@ -61,7 +62,7 @@ def decomp_time():
     timesFile = open(fileName,'w')
     
     testFiles = []
-    for num in range(1, 100):
+    for num in range(1, dataSetUsed):
         testFiles.append('testcases/Example' + str(num) + '.txt')
         
     q = Queue()
@@ -100,7 +101,7 @@ def original_time():
     timesFile = open(fileName,'w')
     
     testFiles = []
-    for num in range(1, 100):
+    for num in range(1, dataSetUsed):
         testFiles.append('testcases/Example' + str(num) + '.txt')
     
     q = Queue()
@@ -139,7 +140,7 @@ def master_time():
     timesFile = open(fileName,'w')
     
     testFiles = []
-    for num in range(1, 100):
+    for num in range(1, dataSetUsed):
         testFiles.append('testcases/Example' + str(num) + '.txt')
     
     q = Queue()
@@ -174,15 +175,6 @@ def master_time():
     
 def run_all():
     decomp_cuts_time()
-    decomp_time()
     original_time()
-    
-    x1, x2, x3 = list(times1.keys()), list(times2.keys()), list(times3.keys())
-    y1, y2, y3 = list(times1.values()), list(times2.values()), list(times3.values())
-    
-    plt.plot(x1, y1, 'r')
-    plt.plot(x2, y2, 'b')
-    plt.plot(x3, y3, 'g')
-    plt.xlabel("Testcases")
-    plt.ylabel("Time")
-    plt.title("all")
+    master_time()
+    decomp_time()
