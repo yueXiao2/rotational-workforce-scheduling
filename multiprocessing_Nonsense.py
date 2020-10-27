@@ -7,7 +7,7 @@ from decomposition_master_extension import *
 import time
 
 timeLimit = 240
-dataSetUsed = 50
+dataSetUsed = 2000
 
 times1 = {}
 times2 = {}
@@ -15,7 +15,7 @@ times3 = {}
 times4 = {}
 
 def constraints(dataMap):
-    return (dataMap['numEmployees'] > 20) and False
+    return (dataMap['numEmployees'] > 20)
 
 def decomp_cuts_time():
     fileName = "elapsed times (with cuts).txt"
@@ -28,10 +28,17 @@ def decomp_cuts_time():
         
     q = Queue()
     
+    count = 0
+    
     for file in testFiles:
         dataMap = read_data(file)
         if constraints(dataMap):
             continue
+        
+        count += 1
+        
+        if count == 50:
+            break
         
         p = Process(target=decompCuts, name="decompCuts", args=(q, file))
         p.start()
@@ -46,6 +53,7 @@ def decomp_cuts_time():
                 q.put("Infeasible")
                 break
     
+        print("Done")
         result = q.get()
         if timeTaken >= timeLimit:
             timesFile.write("File " + file + " didn't complete in time.\n")
@@ -67,10 +75,17 @@ def decomp_time():
         
     q = Queue()
     
+    count = 0
+    
     for file in testFiles:
         dataMap = read_data(file)
         if constraints(dataMap):
             continue
+        
+        count += 1
+        
+        if count == 50:
+            break
         
         p = Process(target=decomp, name="decomp", args=(q, file))
         p.start()
@@ -107,10 +122,17 @@ def original_time():
     
     q = Queue()
     
+    count = 0
+    
     for file in testFiles:
         dataMap = read_data(file)
         if constraints(dataMap):
             continue
+        
+        count += 1
+        
+        if count == 50:
+            break
         
         p = Process(target=originalRecipe, name="original", args=(q, file))
         p.start()
@@ -146,10 +168,17 @@ def master_time():
     
     q = Queue()
     
+    count = 0
+    
     for file in testFiles:
         dataMap = read_data(file)
         if constraints(dataMap):
             continue
+        
+        count += 1
+        
+        if count == 50:
+            break
         
         p = Process(target=decomp_master, name="Decomp Master", args=(q, file))
         p.start()
