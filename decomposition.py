@@ -120,6 +120,8 @@ def maxAllowance(schedulingLength, minWork, minD):
     return int(maxNum)
 
 def decomp(queue, file):
+    if queue != None:
+        queue.put("Time Data")
     dataMap = read_data(file)
     print(file)
     
