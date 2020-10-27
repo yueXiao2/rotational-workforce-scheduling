@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 from decomposition_master_extension import *
 import time
 
-timeLimit = 120
-dataSetUsed = 100
+timeLimit = 240
+dataSetUsed = 50
 
 times1 = {}
 times2 = {}
@@ -15,7 +15,7 @@ times3 = {}
 times4 = {}
 
 def constraints(dataMap):
-    return (dataMap['numEmployees'] > 20)
+    return (dataMap['numEmployees'] > 20) and False
 
 def decomp_cuts_time():
     fileName = "elapsed times (with cuts).txt"
