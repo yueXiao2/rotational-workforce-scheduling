@@ -357,7 +357,7 @@ def decomp_master(queue, file):
                         for sub in SubPaths:
                             model.cbLazy(quicksum(V[n1,n2] 
                                                 for n1 in sub for n2 in sub
-                                                if (n1,n2) in SubSol)<= len(s) - 1)
+                                                if (n1,n2) in SubSol)<= len(sub) - 1)
     
             s.optimize(CallbackSubCycle)
             
