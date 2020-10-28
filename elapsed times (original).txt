@@ -2,7 +2,6 @@ File testcases/Example1.txt needed 26.75126576423645 seconds to finish with resu
 File testcases/Example2.txt needed 2.441819190979004 seconds to finish with result Feasible
 File testcases/Example3.txt needed 39.931928396224976 seconds to finish with result Feasible
 File testcases/Example4.txt needed 48.96517014503479 seconds to finish with result Feasible
-
 File testcases/Example5.txt didn't complete in time.
 File testcases/Example6.txt needed 50.957759618759155 seconds to finish with result Feasible
 File testcases/Example8.txt needed 39.49937391281128 seconds to finish with result Feasible

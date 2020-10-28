@@ -5,6 +5,9 @@ from multiprocessing import Process, Queue
 from matplotlib import pyplot as plt
 from decomposition_master_extension import *
 import time
+import numpy as np
+import pandas as pd
+from pandas import Series, DataFrame
 
 timeLimit = 10*60
 dataSetUsed = 2000
@@ -209,3 +212,17 @@ def run_all():
     original_time()
     master_time()
     decomp_time()
+    
+def making_graphs():
+    feasible = [7, 2, 1]
+    infeasible = [1, 2, 3]
+    overTime = [3, 7, 7]
+    width =0.3
+    thing1 = plt.bar(np.arange(len(feasible)), feasible, width=width, tick_label=["Master","Decomp with cuts","Decomp"])
+    thing2 = plt.bar(np.arange(len(infeasible))+ width, infeasible, width=width)
+    thing3 = plt.bar(np.arange(len(overTime))+ 2*width, overTime, width=width)
+    plt.title("Feasiblity of the Test Instances")
+    plt.ylabel("Number of instances")
+    plt.legend((thing1, thing2, thing3), ("Feasible Instances", "Infeasible Instances", "Overtime Instances"), loc='upper center', bbox_to_anchor=(0.5, -0.1), shadow=True, ncol=2)
+    plt.show()
+    
