@@ -3,8 +3,6 @@ from fileReader import *
 import time
 
 def decomp_master(queue, file):
-    if queue != None:
-        queue.put("Time test")
     dataMap = read_data(file)
     
     planningLength = dataMap['scheduleLength']
@@ -286,6 +284,8 @@ def decomp_master(queue, file):
                     print("ohhhhh cyclic!")
                     isFeasible[0] = False
                     model.terminate()
+                    if queue != None:
+                        queue.put("Infeasible")
                     return
             
             K = cantUseNodes(N)
@@ -395,3 +395,15 @@ def decomp_master(queue, file):
                         print(N[i][0],":",N[i][1])
     
     m.optimize(CallBack)
+    if m.status == GRB.INFEASIBLE:
+        print("no feasible master solution")
+        if queue != None:
+            queue.put("Infeasible")
+    else:
+        if isFeasible == False:
+            print("no feasible sub solution")
+            if queue != None:
+                queue.put("Infeasible")
+        else:
+            if queue != None:
+                queue.put("Feasible")

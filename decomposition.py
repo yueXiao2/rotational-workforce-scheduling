@@ -120,8 +120,6 @@ def maxAllowance(schedulingLength, minWork, minD):
     return int(maxNum)
 
 def decomp(queue, file):
-    if queue != None:
-        queue.put("Time Data")
     dataMap = read_data(file)
     print(file)
     
@@ -416,8 +414,6 @@ def decomp(queue, file):
                         Order.append(current)
                         
                     print(Order)
-                if queue != None:
-                    queue.put("Feasible")
     # =============================================================================
     
     # =============================================================================
@@ -443,9 +439,11 @@ def decomp(queue, file):
                     #print("block " + str(b) + " starts on day " + str(d) + " " +str(X[b,d].x) + " times")
             if queue != None:
                 queue.put("Infeasible")
+        else:
+            if queue != None:
+                queue.put("feasible")
         print("----------------------------------------")
-        if queue != None:
-            queue.put("feasible")
+        
         
         # =============================================================================
         # =============================================================================

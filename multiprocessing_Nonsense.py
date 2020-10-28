@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from decomposition_master_extension import *
 import time
 
-timeLimit = 240
+timeLimit = 10*60
 dataSetUsed = 2000
 
 times1 = {}
@@ -37,7 +37,7 @@ def decomp_cuts_time():
         
         count += 1
         
-        if count == 50:
+        if count == 12:
             break
         
         p = Process(target=decompCuts, name="decompCuts", args=(q, file))
@@ -84,7 +84,7 @@ def decomp_time():
         
         count += 1
         
-        if count == 50:
+        if count == 12:
             break
         
         p = Process(target=decomp, name="decomp", args=(q, file))
@@ -131,7 +131,7 @@ def original_time():
         
         count += 1
         
-        if count == 50:
+        if count == 12:
             break
         
         p = Process(target=originalRecipe, name="original", args=(q, file))
@@ -177,7 +177,7 @@ def master_time():
         
         count += 1
         
-        if count == 50:
+        if count == 12:
             break
         
         p = Process(target=decomp_master, name="Decomp Master", args=(q, file))

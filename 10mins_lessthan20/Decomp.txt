@@ -1,0 +1,11 @@
+{'testcases/Example1.txt': 600.0005011558533,
+ 'testcases/Example2.txt': 600.00053191185,
+ 'testcases/Example3.txt': 600.0004997253418,
+ 'testcases/Example4.txt': 0.2373650074005127,
+ 'testcases/Example5.txt': 9.555475234985352,
+ 'testcases/Example6.txt': 1.3942415714263916,
+ 'testcases/Example8.txt': 600.000529050827,
+ 'testcases/Example12.txt': 600.0005016326904,
+ 'testcases/Example14.txt': 600.0005295276642,
+ 'testcases/Example24.txt': 0.12566351890563965,
+ 'testcases/Example25.txt': 600.0005614757538}
