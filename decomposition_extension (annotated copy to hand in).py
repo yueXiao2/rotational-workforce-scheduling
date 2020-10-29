@@ -399,7 +399,6 @@ m.setParam('Threads',1)
 SolutionSet = []
 
 # are there feasible subproblem solutions?
-global isFeasible
 isFeasible = True
 
 def CallBack(model, where):
@@ -417,6 +416,7 @@ def CallBack(model, where):
                 print("solution appended. current length: " + str(len(SolutionSet)))
         else:
                 print("terminated because encountered a previous master probelm solution")
+                global isFeasible
                 isFeasible = False
                 model.terminate()
                 return
