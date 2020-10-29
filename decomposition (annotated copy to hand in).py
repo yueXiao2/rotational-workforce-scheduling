@@ -347,7 +347,7 @@ def Output(order, N):
             currentShift = scheduleMatrix[e][d]
             
             
-            if currentShift == 3:
+            if currentShift == -1:
                 shiftString += ' - '
             else:
                 shiftString += " "+ shiftType[currentShift] + " "
@@ -431,17 +431,14 @@ def CallBack(model, where):
         s = Model("subproblem")
     
         # 1 if node i is connected to node j
-        V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
-        
-        #Conservation of flow
-        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN) == 1) for i in NN}
-        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN) == 1) for j in NN}
+        V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN if (i,j) not in K}
         
         # the total additional employees needed will equal to the total number of employees
-        EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for i in NN for j in NN) == numEmployee)
+        EmployeeNum = s.addConstr(quicksum(additionEmp(N[i],N[j])*V[i,j] for (i,j) in V) == numEmployee)
         
-        # no forbidden connections
-        ForbiddenNodes = {(i,j):s.addConstr(V[i,j] == 0) for i in NN for j in NN if (i,j) in K}
+        #Conservation of flow
+        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN if (i,j) in V) == 1) for i in NN for v in V if v[0] == i}
+        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN if (i,j) in V) == 1) for j in NN for v in V if v[1] == j}
         
         s.setParam('OutputFlag',0)
         s.setParam("LazyConstraints",1)

@@ -8,7 +8,7 @@ from fileReader import *
 file = "testcases/Example"
 
 # the test intance number to choose
-num = 13
+num = 519
 
 # a map that contains all the necessary data
 dataMap = read_data(file+str(num)+".txt")
@@ -437,14 +437,12 @@ def CallBack(model, where):
         s = Model("subproblem")
     
         # 1 if node i is connected to node j
-        V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN}
+        V = {(i,j):s.addVar(vtype = GRB.BINARY) for i in NN for j in NN if (i,j) not in K}
         
         #Conservation of flow
-        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN) == 1) for i in NN}
-        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN) == 1) for j in NN}
+        OneEdgeOut = {i:s.addConstr(quicksum(V[i,j] for j in NN if (i,j) in V) == 1) for i in NN for v in V if v[0] == i}
+        OneEdgeIn = {j:s.addConstr(quicksum(V[i,j] for i in NN if (i,j) in V) == 1) for j in NN for v in V if v[1] == j}
         
-        # no forbidden connections
-        ForbiddenNodes = {(i,j):s.addConstr(V[i,j] == 0) for i in NN for j in NN if (i,j) in K}
         
         s.setParam('OutputFlag',0)
         s.setParam("LazyConstraints",1)
