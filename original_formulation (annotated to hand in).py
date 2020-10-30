@@ -124,8 +124,20 @@ m.optimize()
 if m.status == GRB.INFEASIBLE:
     print("infeasible problem")
 else:
-
+    
+    # nice output formatting
+    outputStr = ""
     for d in D:
-       for s in S:
-           if X[s,d].x > 0.9:
-              print(shiftType[s],"on day",d,":",X[s,d].x)
+        
+        if d % planningLength == 0 and d != 0:
+            outputStr += "\n"
+        count = 0    
+        for s in S:
+          if X[s,d].x > 0.9:
+              outputStr += " " +shiftType[s] +" "
+          else:
+              count += 1
+              if count == 3:
+                  outputStr += " - "
+
+    print(outputStr)
